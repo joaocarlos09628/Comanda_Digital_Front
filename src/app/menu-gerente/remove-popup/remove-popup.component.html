@@ -1,0 +1,9 @@
+<div class="remove-popup-content" (click)="$event.stopPropagation()">
+  
+  <p>Tem certeza que deseja remover <strong>{{ itemName }}</strong> do cardápio?</p>
+  
+  <div class="popup-actions">
+    <button class="btn-no" (click)="onCancel()">Não</button>
+    <button class="btn-yes" (click)="onConfirm()">Sim</button>
+  </div>
+</div>

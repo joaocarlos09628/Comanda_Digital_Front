@@ -40,8 +40,16 @@ export class OverviewComponent implements OnInit {
     { id: 4, foto: 'chocolate_sq.jpg', nome: 'Pizza Chocolate', preco: 'R$ 56,00', categoria: 'Doce', tag: 'Chocolate', descricao: 'Pizza doce com chocolate e frutas.' },
   ];
 
-  filteredItems: MenuItem[] = [...this.menuItems];
-  searchTerm: string = '';
+ filteredItems: MenuItem[] = [...this.menuItems];
+  searchTerm: string = '';
+  
+  // NOVAS VARIÁVEIS PARA FILTRO DE CATEGORIA
+  selectedCategory: string = 'Todas'; // Inicia com 'Todas'
+  // Lista de categorias que serão exibidas nos botões.
+  allCategories: string[] = ['Todas', 'Pizza', 'Doces', 'Bebidas']; 
+  
+  // Controle de Modais (Propriedades que o HTML precisa)
+  // ...
   
   // Controle de Modais (Propriedades que o HTML precisa)
   isAddItemModalOpen: boolean = false;
@@ -49,9 +57,9 @@ export class OverviewComponent implements OnInit {
   isRemovePopupOpen: boolean = false;
   selectedItem: MenuItem | null = null; 
 
-  ngOnInit(): void {
-    this.applyFilter();
-  }
+ ngOnInit(): void {
+    this.applyCombinedFilter(); // CORRIGIDO
+  }
 
   // --- Lógica de Abertura/Fechamento ---
   openAddItemModal(): void {
@@ -69,12 +77,25 @@ export class OverviewComponent implements OnInit {
   }
   
   closeModal(): void {
-    this.isAddItemModalOpen = false;
-    this.isEditItemModalOpen = false; 
-    this.isRemovePopupOpen = false;
-    this.selectedItem = null;
-    this.applyFilter();
-  }
+    this.isAddItemModalOpen = false;
+    this.isEditItemModalOpen = false; 
+    this.isRemovePopupOpen = false;
+    this.selectedItem = null;
+    this.applyCombinedFilter(); // CORRIGIDO
+  }
+
+  // ... (apó
+
+  // --- Lógica de Filtro por Categoria ---
+  applyCategoryFilter(category: string): void {
+    // 1. Define a categoria selecionada para o estilo CSS
+    this.selectedCategory = category;
+
+    // 2. Chama a função de filtro principal para aplicar o filtro de texto E o filtro de categoria
+    this.applyCombinedFilter();
+  }
+
+// ... (continua no ponto 3)
 
   // --- Lógica de CRUD ---
   
@@ -100,13 +121,28 @@ export class OverviewComponent implements OnInit {
     this.closeModal();
   }
   
-  // Lógica de Filtro
-  applyFilter(): void {
-    const term = this.searchTerm.trim().toLowerCase();
-    this.filteredItems = this.menuItems.filter(
-      item =>
-        item.nome.toLowerCase().includes(term) ||
-        item.categoria.toLowerCase().includes(term)
-    );
-  }
+ // Lógica de Filtro COMBINADA (Texto + Categoria)
+  applyCombinedFilter(): void {
+    const term = this.searchTerm.trim().toLowerCase();
+    
+    let tempItems = this.menuItems;
+
+    // A. FILTRO DE TEXTO: Aplica a busca por texto no nome/categoria
+    if (term) {
+      tempItems = tempItems.filter(
+        item =>
+          item.nome.toLowerCase().includes(term) ||
+          item.categoria.toLowerCase().includes(term)
+      );
+    }
+
+    // B. FILTRO DE CATEGORIA: Aplica a categoria selecionada
+    if (this.selectedCategory !== 'Todas') {
+      tempItems = tempItems.filter(item => 
+        item.categoria === this.selectedCategory
+      );
+    }
+
+    this.filteredItems = tempItems;
+  }
 }

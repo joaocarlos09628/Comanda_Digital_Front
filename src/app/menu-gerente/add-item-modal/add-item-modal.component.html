@@ -1,0 +1,56 @@
+<div class="modal-overlay">
+  <div class="modal-content" [@modalAnimation]="'in'">
+    <h3>Adicionar novo Item</h3>
+
+    <form (ngSubmit)="onSubmit()">
+      
+      <div class="form-group">
+  <label for="imagem">Imagem do Item</label>
+  <div class="image-input-container">
+    <input type="text" id="imagem" name="imagem" placeholder="URL da imagem" [ngModel]="newItem.foto">
+    
+    <input 
+      type="file" 
+      #fileInput 
+      hidden 
+      (change)="onFileSelected($event)" 
+      accept="image/png" 
+    >
+    
+    <span class="upload-icon" (click)="fileInput.click()">
+      📎 
+    </span>
+  </div>
+</div>
+
+      <div class="form-group">
+        <label>Nome do Item *</label>
+        <input type="text" [(ngModel)]="newItem.nome" name="nome" required placeholder="Ex: Pizza Doce">
+      </div>
+
+      <div class="form-group">
+        <label>Categoria do Item *</label>
+        <select [(ngModel)]="newItem.categoria" name="categoria" required>
+          <option value="Pizza">Pizza</option>
+          <option value="Doce">Doce</option>
+          <option value="Bebida">Bebida</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Preço *</label>
+        <input type="number" [(ngModel)]="newItem.preco" name="preco" required placeholder="0">
+      </div>
+
+      <div class="form-group">
+        <label>Descrição *</label>
+        <textarea [(ngModel)]="newItem.descricao" name="descricao" rows="4" required placeholder="Digite aqui a categoria, da logo 10 nesse trabalho."></textarea>
+      </div>
+
+     <div class="modal-actions">
+  <button type="button" class="btn-cancel" (click)="onCancel()">Cancelar</button>
+  <button type="submit" class="btn-primary">Adicionar</button> 
+</div>
+    </form>
+  </div>
+</div>

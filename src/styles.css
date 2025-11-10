@@ -1,1 +1,28 @@
-/* You can add global styles to this file, and also import other style files */
+/* 2. Estrutura Fundamental: Garante que a base da página ocupe 100% da tela */
+html, body {
+  /* Margem e Padding zerados (já estava certo, mas reforçamos) */
+  margin: 0; 
+  padding: 0;
+  
+  /* Garantia de 100% */
+  height: 100%; 
+  width: 100%;
+  
+  font-family: Arial, sans-serif;
+  
+  /* Nova Regra: Força o body a ser flexível (o que ajuda a ignorar margens estranhas) */
+  display: flex; 
+  flex-direction: column;
+
+  background-color: var(--light-gray-bg); 
+}
+
+/* 3. Variáveis Globais de CSS: Centraliza as cores e valores reutilizáveis */
+:root {
+  --orange-header: #FF8C00; 
+  --white-bg: #FFFFFF;
+  --dark-text: #333333;
+  --light-gray-bg: #F5F5F5; /* Cor de fundo principal da aplicação */
+  --border-color: #E0E0E0;
+  --hover-orange: #ff9d2a;
+}

@@ -1,0 +1,143 @@
+/* Configura o componente modal para ter padding interno e barra de rolagem */
+:host {
+    display: block; 
+    height: 100%;
+    padding: 30px;
+    overflow-y: auto; 
+}
+
+/* Estilo do título "Adicionar novo Item" */
+.modal-header {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 30px; 
+}
+
+/* --- ESTILIZAÇÃO FIEL AO FIGMA (Inputs e Foco Laranja) --- */
+.form-group { 
+    margin-bottom: 20px; 
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #555;
+}
+
+input[type="text"], 
+input[type="number"], 
+textarea, 
+select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd; 
+    border-radius: 8px; /* Arredondamento suave do Figma */
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+/* FOCO LARANJA: Para o input ativo */
+input:focus, 
+textarea:focus, 
+select:focus {
+    border-color: #FF7F50; /* Borda Laranja Suave */
+    outline: none;
+    box-shadow: 0 0 5px rgba(255, 127, 80, 0.4); /* Sombra Laranja */
+}
+
+/* --- ESTILIZAÇÃO FIEL AO FIGMA (Botões) --- */
+/* --- ALINHAMENTO DOS BOTÕES (Parte inferior do modal) --- */
+.modal-actions {
+  display: flex !important; 
+    
+    /* A chave: Centraliza o grupo de botões */
+    justify-content: center !important; 
+    
+    /* Espaçamento entre os botões */
+    gap: 80px; /* Aumente o gap para 20px para melhor visual */
+    
+    /* Garante que o bloco não fique grudado no topo */
+    margin-top: 35px; 
+    padding-top: 20px;
+    border-top: 1px solid #eee; 
+    
+    /* ADICIONE PADDING LATERAL AO PRÓPRIO BLOCO, se a div pai não tiver */
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+
+/* Estilo do Botão "Cancelar" (Borda e cor cinza, Fiel ao Figma) */
+.btn-cancel {
+    background: white; 
+    color: #000000;
+    border: 1px solid #f8cb00;
+    padding: 15px 45px !important; 
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn-cancel:hover {
+    background-color: #c4bebe;
+}
+
+
+/* Estilo do Botão Principal "Adicionar/Salvar" (Fundo preto, Fiel ao Figma) */
+.btn-primary {
+    background-color: black;
+    color: white;
+    border: none;
+    padding: 15px 45px !important; 
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+.btn-primary:hover {
+    background-color: #333;
+}
+
+/* --- Estilo do Campo de Imagem (Uni o input e o ícone) --- */
+.image-input-container { 
+    display: flex; 
+    align-items: center; 
+}
+
+/* Input de Imagem */
+.image-input-container input { 
+    flex-grow: 1; 
+    border-right: none; 
+    border-radius: 8px 0 0 8px; 
+    height: 42px; /* Altura exata */
+    box-sizing: border-box; 
+    border: 1px solid #ddd;
+}
+
+/* Ícone de Upload (o clipe/seta) */
+.upload-icon {
+    padding: 10px; 
+    background-color: #F0F0F0; 
+    border: 1px solid #ddd; 
+    border-left: none; 
+    border-radius: 0 8px 8px 0; 
+    cursor: pointer;
+    
+    /* CORREÇÃO: Reduz o tamanho da fonte do ícone */
+    font-size: 1rem; 
+
+    height: 20px; /* Garante a mesma altura do input */
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.upload-icon:hover {
+    background-color: #e5e5e5;
+}

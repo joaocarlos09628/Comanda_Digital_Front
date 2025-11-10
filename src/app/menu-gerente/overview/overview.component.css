@@ -1,0 +1,274 @@
+.tela-gerente-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.top-header {
+  background: linear-gradient(135deg, #FF9422 0%, #FF6200 10%);
+  color: white;
+  padding: 40px 50px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: 0 8px 15px rgba(255, 127, 80, 0.3);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-add {
+  background-color: black;
+  color: var(--white-bg);
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-add:hover {
+  background-color: #333333;
+  transform: scale(1.02);
+}
+
+.overview-box {
+  background-color: var(--white-bg);
+  color: var(--dark-text);
+  padding: 10px 20px;
+  border-radius: 8px;
+  width: 200px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.box-title {
+  font-size: 0.9rem;
+  margin: 0;
+  opacity: 0.7;
+}
+
+.box-count {
+  font-size: 2rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.box-count span {
+  font-size: 1.5rem;
+  opacity: 0.8;
+}
+
+.content-body {
+  padding: 30px 40px;
+  background-color: white;
+  margin-top: 25px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  padding: 10px 1px 10px 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  width: 250px;
+  transition: border-color 0.2s;
+  font-size: 0.9rem;
+}
+
+.search-input:focus {
+  border-color: var(--orange-header);
+  outline: none;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  align-items: center;
+}
+
+.filter-btn-categoria {
+  background-color: var(--light-gray-bg);
+  color: var(--dark-text);
+  border: none;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.filter-btn-categoria.active {
+  background-color: var(--orange-header);
+  color: var(--white-bg);
+}
+
+.filter-btn-categoria:hover:not(.active) {
+  background-color: #e0e0e0;
+}
+
+.menu-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.menu-table th, .menu-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle; /* Mantém o alinhamento vertical geral */
+}
+
+.menu-table th {
+  background-color: #FFE0C9;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #5E251A;
+}
+
+.item-foto {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.item-tag {
+  font-size: 0.75rem;
+  color: #888;
+  margin-left: 5px;
+}
+
+.category-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.category-pill::before {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.category-Pizza {
+  background-color: #FFF2E6;
+  color: #FF7F50;
+}
+.category-Pizza::before {
+  background-color: #FF7F50;
+}
+
+.category-Bebida {
+  background-color: #E8F8FF;
+  color: #4299E1;
+}
+.category-Bebida::before {
+  background-color: #4299E1;
+}
+
+.category-Doce {
+  background-color: #FFF0F6;
+  color: #FF6F9C;
+}
+.category-Doce::before {
+  background-color: #FF6F9C;
+}
+
+.action-icons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  position: relative;
+  height: 40px; 
+  cursor :pointer;
+  user-select: none;
+}
+
+.action-icons .icon-edit:hover {
+  color: var(--orange-header);
+}
+
+.action-icons .icon-remove {
+  color: #ff4d4f;
+}
+
+.action-icons .icon-remove:hover {
+  color: #cc0000;
+}
+
+.items-footer {
+  text-align: right;
+  padding-top: 15px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Fundo escuro do modal (sempre presente no DOM para transições) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  /* CORREÇÃO: Transições suaves para visibilidade/opacidade do overlay */
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Overlay oculto (quando modal fechado) */
+.modal-overlay-closed {
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* Overlay visível (quando modal aberto) */
+.modal-overlay-open {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Estilos do painel lateral (deslizamento) */
+.side-panel-enter, .side-panel-exit {
+  width: 400px;
+  height: 100%;
+  background: white;
+  box-shadow: -8px 0 15px rgba(0, 0, 0, 0.2);
+  /* CORREÇÃO: Transição suave para o transform (deslizamento) */
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.side-panel-enter {
+  transform: translateX(0%);
+}
+
+.side-panel-exit {
+  transform: translateX(100%);
+}

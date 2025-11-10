@@ -1,0 +1,206 @@
+<div class="tela-gerente-container">
+
+ 
+
+  <header class="top-header">
+
+    <div class="header-content">
+
+     
+
+      <div class="overview-box">
+
+        <h3 class="box-title">Items no cardápio</h3>
+
+        <div class="box-count">{{ menuItems.length }} <span>📊</span></div>
+
+      </div>
+
+     
+
+      <button class="btn-add" (click)="openAddItemModal()">
+
+        + Adicionar Item
+
+      </button>
+
+    </div>
+
+  </header>
+
+
+
+  <div class="content-body">
+
+    <h2 class="section-title">Itens Adicionados</h2>
+
+
+
+   <div class="filter-bar">
+
+    <input
+
+        type="text"
+
+        placeholder="🔍 Busque pelo Item"
+
+        [(ngModel)]="searchTerm"
+
+        (input)="applyCombinedFilter()"
+
+        class="search-input">
+
+     
+
+      <button
+
+        *ngFor="let category of allCategories"
+
+        class="filter-btn-categoria"
+
+        (click)="applyCategoryFilter(category)"
+
+        [class.active]="selectedCategory === category">
+
+       
+
+        {{ category }}
+
+      </button>
+
+          </div>
+
+
+
+    <table class="menu-table">
+
+      <thead>
+
+        <tr>
+
+          <th>Foto</th>
+
+          <th>Nome</th>
+
+          <th>Preço</th>
+
+          <th>Categoria</th>
+
+          <th>Ações</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let item of filteredItems">
+
+          <td><img [src]="item.foto || 'placeholder.jpg'" alt="{{ item.nome }}" class="item-foto"></td>
+
+          <td>{{ item.nome }} <span class="item-tag">{{ item.tag }}</span></td>
+
+          <td>{{ item.preco }}</td>
+
+         <td>
+
+              <span
+
+                class="category-pill"
+
+                [ngClass]="'category-' + item.categoria">
+
+                {{ item.categoria }}
+
+              </span>
+
+            </td>
+
+          <td class="action-icons popup-parent">
+            <span class="icon-edit" (click)="openEditItem(item)">✏️</span>
+            <span class="icon-remove" (click)="openRemoveConfirm(item)">🗑️</span>
+
+            <app-remove-popup
+              *ngIf="isRemovePopupOpen && selectedItem === item"
+              [itemName]="selectedItem.nome"
+              (close)="closeModal()"
+              (confirmRemove)="onRemoveConfirmed()">
+            </app-remove-popup>
+          </td>
+
+      </tbody>
+
+    </table>
+
+   
+
+    <div class="items-footer">
+
+      Exibindo {{ filteredItems.length }} de {{ menuItems.length }} Itens
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+
+<div class="modal-overlay"
+
+    *ngIf="isAddItemModalOpen"
+
+    (click)="closeModal()">
+
+  <app-add-item-modal
+
+    (close)="closeModal()"
+
+    (itemAdded)="onItemAdded($event)"
+
+    (click)="$event.stopPropagation()"
+
+    [ngClass]="isAddItemModalOpen ? 'side-panel-enter' : 'side-panel-exit'">
+
+  </app-add-item-modal>
+
+</div>
+
+
+
+<app-remove-popup
+
+  *ngIf="isRemovePopupOpen && selectedItem"
+
+  [itemName]="selectedItem.nome"
+
+  (close)="closeModal()"
+
+  (confirmRemove)="onRemoveConfirmed()">
+
+</app-remove-popup>
+
+
+
+<div class="modal-overlay"
+
+    *ngIf="isEditItemModalOpen && selectedItem"
+
+    (click)="closeModal()">
+
+  <app-edit-item-modal
+
+    [item]="selectedItem"
+
+    (close)="closeModal()"
+
+    (itemUpdated)="onItemUpdated($event)"
+
+    (click)="$event.stopPropagation()"
+
+    [ngClass]="isEditItemModalOpen ? 'side-panel-enter' : 'side-panel-exit'">
+
+  </app-edit-item-modal>
+
+</div>

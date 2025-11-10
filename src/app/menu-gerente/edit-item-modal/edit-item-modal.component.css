@@ -1,0 +1,152 @@
+/* --- ESTILOS GERAIS DO COMPONENTE (Side-Panel) --- */
+
+/* :host define o padding interno e a rolagem para o painel lateral */
+:host {
+    display: block; 
+    height: 100%;
+    padding: 30px;
+    overflow-y: auto; 
+    box-sizing: border-box;
+}
+
+/* Título */
+.modal-header, h3 { 
+    margin-top: 0; 
+    margin-bottom: 25px; /* Ajuste unificado */
+    font-size: 1.5rem; 
+    font-weight: 600;
+    color: #333;
+}
+
+/* --- IMAGEM DE PREVIEW (Centralizada) --- */
+.image-preview-container {
+    text-align: center;
+    margin-bottom: 25px;
+}
+.item-image-preview {
+    width: 100px; 
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin: 0 auto; 
+    display: block; 
+}
+
+/* --- ESTILIZAÇÃO DE FORMULÁRIO (INPUTS E FOCO LARANJA) --- */
+.form-group { 
+    margin-bottom: 20px; 
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #555;
+}
+
+/* 1. DEFINIÇÃO PADRÃO DE TODOS OS INPUTS (Elimina a sobreposição) */
+input[type="text"], 
+input[type="number"], 
+textarea, 
+select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #E0E0E0; /* Borda Cinza Clara Padrão */
+    border-radius: 8px; 
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+/* FOCO LARANJA */
+input:focus, 
+textarea:focus, 
+select:focus {
+    border-color: #FF7F50 !important; 
+    outline: none !important;
+    box-shadow: 0 0 5px rgba(255, 127, 80, 0.4) !important; 
+}
+/* --- Estilo do Campo de Imagem (Uni o input e o ícone) --- */
+.image-input-container { 
+    display: flex; 
+    align-items: center; 
+}
+
+/* Input de Imagem */
+.image-input-container input { 
+    flex-grow: 1; 
+    border-right: none; 
+    border-radius: 8px 0 0 8px; 
+    height: 42px; /* Altura exata */
+    box-sizing: border-box; 
+    border: 1px solid #ddd;
+}
+
+/* Ícone de Upload (o clipe/seta) */
+.upload-icon {
+    padding: 10px; 
+    background-color: #F0F0F0; 
+    border: 1px solid #ddd; 
+    border-left: none; 
+    border-radius: 0 8px 8px 0; 
+    cursor: pointer;
+    
+    /* CORREÇÃO: Reduz o tamanho da fonte do ícone */
+    font-size: 1rem; 
+
+    height: 20px; /* Garante a mesma altura do input */
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.upload-icon:hover {
+    background-color: #e5e5e5;
+}
+
+
+/* --- ESTILIZAÇÃO DOS BOTÕES --- */
+.modal-actions {
+    display: flex !important; 
+    justify-content: center !important; 
+    gap: 20px; /* Reduzido o gap para 20px para melhor visual */
+    margin-top: 35px; 
+    padding-top: 20px;
+    border-top: 1px solid #eee; 
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Botão CANCELAR (Corrigido para Borda Cinza padrão) */
+.btn-cancel {
+    background: white !important; 
+    color: #000000 !important;
+    border: 1px solid #ccc !important; /* Borda Cinza padrão, não #f8cb00 */
+    padding: 15px 45px !important; 
+    border-radius: 8px !important;
+    cursor: pointer;
+    font-weight: 600 !important;
+    transition: background-color 0.2s;
+}
+.btn-cancel:hover {
+    background-color: #f0f0f0;
+}
+
+
+/* Botão Principal "Adicionar/Salvar" (Fundo preto) */
+.btn-primary {
+    background-color: black !important;
+    color: white !important;
+    border: none !important;
+    padding: 15px 45px !important; 
+    border-radius: 8px !important;
+    cursor: pointer;
+    font-weight: 600 !important;
+    transition: background-color 0.2s;
+}
+.btn-primary:hover {
+    background-color: #333;
+}
