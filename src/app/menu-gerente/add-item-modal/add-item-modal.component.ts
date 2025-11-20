@@ -1,8 +1,10 @@
+// Componente de modal para adicionar um item ao cardápio.
+// Comentários escritos no mesmo tom que você pediu: explicando o que cada bloco faz, sem alterar a lógica.
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'; 
 import { trigger, transition, style, animate } from '@angular/animations';
-import { MenuItem } from '../overview/overview.component'; // Importa a interface
+import { MenuItem } from '../overview/overview.component'; // Importa a interface do item do cardápio
 
 @Component({
   selector: 'app-add-item-modal',
@@ -38,7 +40,12 @@ export class AddItemModalComponent {
  
  
   };
-
+  // --------------------------------------------------
+  // Método: onFileSelected
+  // - Quando o usuário escolhe um arquivo, aqui eu pego o primeiro arquivo
+  // - Atualizo o campo `newItem.foto` com um texto simples (aqui o código original usava apenas o nome do arquivo)
+  // - Não faço upload real, apenas guardo a referência/nome para exibição
+  // --------------------------------------------------
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
     if (file) {
@@ -49,10 +56,14 @@ export class AddItemModalComponent {
     }
 
   }
+
+  // Fecha o modal sem enviar nada (emit para o componente pai)
   onCancel(): void {
     this.close.emit();
   }
 
+  // Envia o novo item para o componente pai
+  // Mantive a validação mínima que já existia (nome, preço e categoria obrigatórios)
   onSubmit(): void {
     // Validação mínima
     if (!this.newItem.nome || !this.newItem.preco || !this.newItem.categoria) {

@@ -1,4 +1,9 @@
-/* Configura o componente modal para ter padding interno e barra de rolagem */
+/* ========================= */
+/* Estilos do modal "Adicionar Item" */
+/* Comentários: explico as partes principais para facilitar quem for editar depois */
+/* ========================= */
+
+/* O host define o comportamento de rolagem/padding do painel lateral */
 :host {
     display: block; 
     height: 100%;
@@ -6,7 +11,7 @@
     overflow-y: auto; 
 }
 
-/* Estilo do título "Adicionar novo Item" */
+/* Título do modal */
 .modal-header {
     font-size: 1.5rem;
     font-weight: 600;
@@ -14,11 +19,12 @@
     margin-bottom: 30px; 
 }
 
-/* --- ESTILIZAÇÃO FIEL AO FIGMA (Inputs e Foco Laranja) --- */
+/* Form groups: espaçamento entre campos */
 .form-group { 
     margin-bottom: 20px; 
 }
 
+/* Labels: consistência visual */
 label {
     display: block;
     margin-bottom: 5px;
@@ -27,6 +33,7 @@ label {
     color: #555;
 }
 
+/* Inputs/textarea/select: padding, borda e arredondamento */
 input[type="text"], 
 input[type="number"], 
 textarea, 
@@ -34,61 +41,48 @@ select {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #ddd; 
-    border-radius: 8px; /* Arredondamento suave do Figma */
+    border-radius: 8px; /* Arredondamento suave */
     font-size: 1rem;
     transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
 }
 
-/* FOCO LARANJA: Para o input ativo */
+/* Foco laranja: ajuda a ver o campo ativo */
 input:focus, 
 textarea:focus, 
 select:focus {
     border-color: #FF7F50; /* Borda Laranja Suave */
     outline: none;
-    box-shadow: 0 0 5px rgba(255, 127, 80, 0.4); /* Sombra Laranja */
+    box-shadow: 0 0 5px rgba(255, 127, 80, 0.4);
 }
 
-/* --- ESTILIZAÇÃO FIEL AO FIGMA (Botões) --- */
-/* --- ALINHAMENTO DOS BOTÕES (Parte inferior do modal) --- */
+/* Ação inferior (botões): centralizo e separo */
 .modal-actions {
   display: flex !important; 
-    
-    /* A chave: Centraliza o grupo de botões */
-    justify-content: center !important; 
-    
-    /* Espaçamento entre os botões */
-    gap: 80px; /* Aumente o gap para 20px para melhor visual */
-    
-    /* Garante que o bloco não fique grudado no topo */
-    margin-top: 35px; 
-    padding-top: 20px;
-    border-top: 1px solid #eee; 
-    
-    /* ADICIONE PADDING LATERAL AO PRÓPRIO BLOCO, se a div pai não tiver */
-    padding-left: 20px;
-    padding-right: 20px;
+  justify-content: center !important; 
+  gap: 20px; /* Espaçamento entre botões */
+  margin-top: 35px; 
+  padding-top: 20px;
+  border-top: 1px solid #eee; 
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
-
-/* Estilo do Botão "Cancelar" (Borda e cor cinza, Fiel ao Figma) */
+/* Botões: estilos principais */
 .btn-cancel {
     background: white; 
     color: #000000;
-    border: 1px solid #f8cb00;
+    border: 1px solid #ccc;
     padding: 15px 45px !important; 
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
     transition: background-color 0.2s;
 }
-
 .btn-cancel:hover {
-    background-color: #c4bebe;
+    background-color: #f0f0f0;
 }
 
-
-/* Estilo do Botão Principal "Adicionar/Salvar" (Fundo preto, Fiel ao Figma) */
 .btn-primary {
     background-color: black;
     color: white;
@@ -103,23 +97,21 @@ select:focus {
     background-color: #333;
 }
 
-/* --- Estilo do Campo de Imagem (Uni o input e o ícone) --- */
+/* Container que agrupa o input de texto e o ícone de upload */
 .image-input-container { 
     display: flex; 
     align-items: center; 
 }
 
-/* Input de Imagem */
 .image-input-container input { 
     flex-grow: 1; 
     border-right: none; 
     border-radius: 8px 0 0 8px; 
-    height: 42px; /* Altura exata */
+    height: 42px; 
     box-sizing: border-box; 
     border: 1px solid #ddd;
 }
 
-/* Ícone de Upload (o clipe/seta) */
 .upload-icon {
     padding: 10px; 
     background-color: #F0F0F0; 
@@ -127,17 +119,13 @@ select:focus {
     border-left: none; 
     border-radius: 0 8px 8px 0; 
     cursor: pointer;
-    
-    /* CORREÇÃO: Reduz o tamanho da fonte do ícone */
     font-size: 1rem; 
-
-    height: 20px; /* Garante a mesma altura do input */
+    height: 20px; 
     display: flex; 
     align-items: center; 
     justify-content: center;
     transition: background-color 0.2s;
 }
-
 .upload-icon:hover {
     background-color: #e5e5e5;
 }

@@ -1,14 +1,21 @@
+<!-- Modal para adicionar item -->
+<!-- Comentários: explico cada bloco para facilitar manutenção futura -->
 <div class="modal-overlay">
   <div class="modal-content" [@modalAnimation]="'in'">
+    <!-- Título do modal -->
     <h3>Adicionar novo Item</h3>
 
+    <!-- Formulário principal: chama onSubmit() no componente TS -->
     <form (ngSubmit)="onSubmit()">
       
+      <!-- Campo de imagem: permite URL ou seleção de arquivo local -->
       <div class="form-group">
   <label for="imagem">Imagem do Item</label>
   <div class="image-input-container">
+    <!-- Mostra a string que está em newItem.foto (pode ser URL ou texto com nome do arquivo) -->
     <input type="text" id="imagem" name="imagem" placeholder="URL da imagem" [ngModel]="newItem.foto">
     
+    <!-- Input real de arquivo (escondido). Ao trocar, chama onFileSelected -->
     <input 
       type="file" 
       #fileInput 
@@ -17,17 +24,20 @@
       accept="image/png" 
     >
     
+    <!-- Ícone clicável para abrir o seletor de arquivo -->
     <span class="upload-icon" (click)="fileInput.click()">
       📎 
     </span>
   </div>
 </div>
 
+      <!-- Nome (obrigatório) -->
       <div class="form-group">
         <label>Nome do Item *</label>
         <input type="text" [(ngModel)]="newItem.nome" name="nome" required placeholder="Ex: Pizza Doce">
       </div>
 
+      <!-- Categoria (obrigatório). As opções devem bater com as categorias usadas no overview -->
       <div class="form-group">
         <label>Categoria do Item *</label>
         <select [(ngModel)]="newItem.categoria" name="categoria" required>
@@ -37,16 +47,19 @@
         </select>
       </div>
 
+      <!-- Preço (obrigatório) -->
       <div class="form-group">
         <label>Preço *</label>
         <input type="number" [(ngModel)]="newItem.preco" name="preco" required placeholder="0">
       </div>
 
+      <!-- Descrição -->
       <div class="form-group">
         <label>Descrição *</label>
         <textarea [(ngModel)]="newItem.descricao" name="descricao" rows="4" required placeholder="Digite aqui a categoria, da logo 10 nesse trabalho."></textarea>
       </div>
 
+     <!-- Ações do modal: cancelar ou adicionar -->
      <div class="modal-actions">
   <button type="button" class="btn-cancel" (click)="onCancel()">Cancelar</button>
   <button type="submit" class="btn-primary">Adicionar</button> 

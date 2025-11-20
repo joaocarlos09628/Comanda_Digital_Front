@@ -1,19 +1,21 @@
+// Modal para editar um item já existente.
+// Comentários no estilo "como se fosse eu falando": explico inputs, outputs e cada método.
 import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MenuItem } from '../overview/overview.component'; 
-// *** NOVO: Importe os módulos de animação ***
+// Import de animações (usado para slide-in do painel)
 import { trigger, state, style, transition, animate } from '@angular/animations'; 
 
 
 @Component({
-  selector: 'app-edit-item-modal',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './edit-item-modal.component.html',
-  styleUrls: ['./edit-item-modal.component.css'],
-  // *** NOVO: Defina a animação do Side-Panel ***
-  animations: [
+  selector: 'app-edit-item-modal',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './edit-item-modal.component.html',
+  styleUrls: ['./edit-item-modal.component.css'],
+  // Animação simples: painel entra/saida pela direita
+  animations: [
     trigger('slideIn', [
       // Estado inicial (fora da tela, à direita)
       state('void', style({ transform: 'translateX(100%)' })),
@@ -29,25 +31,26 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
   ]
 })
 export class EditItemModalComponent implements OnInit {
-  // Entradas/Saídas (Inputs e Outputs)
+  // Input: o item que o pai quer editar — é preenchido antes do ngOnInit
   @Input() item!: MenuItem; // O item que vem do OverviewComponent
+  // Outputs: eventos para fechar e enviar o item atualizado
   @Output() close = new EventEmitter<void>();
   @Output() itemUpdated = new EventEmitter<MenuItem>(); 
 
-  // A propriedade que o HTML precisa para o formulário (corrigindo 'Property 'editForm' does not exist')
+  // editForm: cópia parcial do MenuItem usada pelo formulário do modal
   editForm: Partial<MenuItem> = {};
 
+  // Ao iniciar, clono os dados do item para editForm — assim não altero o objeto original até o submit
   ngOnInit(): void {
-    // Inicializa o formulário com os dados do item que veio como Input
     this.editForm = { ...this.item };
   }
   
-  // Função que o HTML precisa (corrigindo 'Property 'onCancel' does not exist')
+  // Fecha o modal sem salvar (emite para o pai)
   onCancel(): void {
     this.close.emit();
   }
 
-  // Função que o HTML precisa (corrigindo 'Property 'onSubmit' does not exist')
+  // Valida e emite o item atualizado
   onSubmit(): void {
     if (!this.editForm.nome || !this.editForm.preco || !this.editForm.categoria) {
         alert('Preencha os campos obrigatórios.');
@@ -58,6 +61,8 @@ export class EditItemModalComponent implements OnInit {
     this.itemUpdated.emit(this.editForm as MenuItem);
   }
 
+  // Quando o usuário seleciona um arquivo local, leio como Base64 e atualizo editForm.foto
+  // Observação: aqui não faço upload para servidor — só pré-visualizo via Base64
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (file) {
