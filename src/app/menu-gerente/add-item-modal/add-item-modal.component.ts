@@ -36,7 +36,7 @@ export class AddItemModalComponent {
     preco: '',
     categoria: 'Pizza',
     descricao: '',
-    foto: ''
+    UrlImage: ''
  
  
   };
@@ -50,7 +50,7 @@ export class AddItemModalComponent {
     const file: File = event.target.files[0];
     if (file) {
       // Atualiza o campo de texto (URL da imagem) com o nome do arquivo.
-      this.newItem.foto = 'Arquivo: ' + file.name;
+      this.newItem.UrlImage = 'Arquivo: ' + file.name;
       
       console.log('Arquivo selecionado:', file.name);
     }

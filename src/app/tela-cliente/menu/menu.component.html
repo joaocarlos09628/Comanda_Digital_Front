@@ -1,0 +1,66 @@
+<!-- MenuComponent - layout principal do cardápio -->
+<div class="menu-root">
+
+  <!-- Header com endereço, avatar e campo de busca simples -->
+  <header class="menu-header">
+    <div class="header-left">
+      <div class="address">Meu Endereço • Entrega 30-45 min</div>
+      <div class="search-small">
+        <input type="text" placeholder="O que vai pedir hoje?" />
+      </div>
+    </div>
+    <div class="header-right">
+      <img src="https://placehold.co/40x40/cccccc/666?text=U" alt="avatar" class="avatar" />
+    </div>
+  </header>
+
+  <!-- Banner de promoção largura total -->
+  <section class="promo-banner">
+    <div class="promo-content">
+      <div class="promo-text">
+        <div class="promo-title">Leve 2 Ganhe 1</div>
+        <div class="promo-sub">Oferta válida para pizzas selecionadas</div>
+      </div>
+      <div class="promo-cta">
+        <button class="btn-go">Ir agora</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tabs de categorias -->
+  <nav class="tabs">
+    <ul>
+      <li *ngFor="let cat of categorias" (click)="filtrarPorCategoria(cat)" [class.active]="categoriaSelecionada === cat">
+        {{cat}}
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Lista de produtos (grid responsivo) -->
+  <main class="prod-list">
+    <div *ngFor="let p of itensMenu" class="card">
+      <div class="card-left" (click)="navegarParaDetalhes(p)">
+        <img [src]="p.img" [alt]="p.nome" />
+      </div>
+      <div class="card-body">
+        <h3 class="card-title" (click)="navegarParaDetalhes(p)">{{p.nome}}</h3>
+        <p class="card-desc">{{p.descricao}}</p>
+        <div class="card-footer">
+          <div class="price">R$ {{p.preco | number:'1.2-2'}}</div>
+          <div class="actions">
+            <!-- botão pequeno + -->
+            <button class="btn-plus" (click)="adicionarAoCarrinho(p)">+</button>
+
+            <!-- botão grande adicionar (visível quando produto não está no carrinho) -->
+            <button *ngIf="!p.inCart" class="btn-add-large" (click)="adicionarAoCarrinho(p)">Adicionar R$ {{p.preco | number:'1.2-2'}}</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Favorito (coração) no canto inferior direito do card -->
+      <button class="fav-btn">♡</button>
+    </div>
+  </main>
+
+</div>
+<p>menu works!</p>

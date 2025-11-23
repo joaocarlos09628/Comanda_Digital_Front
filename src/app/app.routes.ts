@@ -8,13 +8,19 @@ export const routes: Routes = [
     loadComponent: () => import('./menu-gerente/overview/overview.component').then(m => m.OverviewComponent),
     title: 'Gerente | Cardápio' 
   },
+	// Rota detalhe do item
+	{
+	  path: 'item-detalhe/:id',
+	  loadComponent: () => import('./tela-cliente/item-detalhe/item-detalhe.component').then(m => m.ItemDetalheComponent),
+	  title: 'Detalhe do Item'
+	},
   
   // Rota 2: Tela da Cozinha (Painel Kanban)
   { 
     path: 'cozinha', 
     // CORREÇÃO: Caminho do arquivo PainelComponent
-    loadComponent: () => import('./modulo-cozinha/painel/painel.component').then(m => m.PainelComponent),
-    title: 'Cozinha | Pedidos' 
+    loadComponent: () => import('./modulo-cozinha/painel/painel.component').then(m => m.PainelComponent),
+    title: 'Cozinha | Pedidos' 
   },
   
   // Rotas Flutuantes (Assíncronas)
@@ -23,11 +29,12 @@ export const routes: Routes = [
     loadComponent: () => import('./modulo-cozinha/painel/painel.component').then(m => m.PainelComponent), 
     title: 'Motoboy | Rota' 
   },
-  { 
-    path: 'cliente', 
-    loadComponent: () => import('./menu-gerente/overview/overview.component').then(m => m.OverviewComponent), 
-    title: 'Cliente | Pedido' 
-  },
+	{ 
+		path: 'cliente', 
+		// Rota do cliente: agora carrega o novo HomeComponent como tela inicial.
+		loadComponent: () => import('./tela-cliente/home/home.component').then(m => m.HomeComponent),
+		title: 'Cliente | Início' 
+	},
 
   // Rota Padrão: Redireciona para o Gerente
   { 

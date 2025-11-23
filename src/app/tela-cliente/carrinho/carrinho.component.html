@@ -1,0 +1,57 @@
+<div class="cart-container">
+
+  <header class="cart-header">
+    <mat-icon class="back-icon">arrow_back_ios</mat-icon>
+    <h2>Meu Carrinho ({{ itensCarrinho.length }})</h2>
+    <mat-icon class="clear-icon">delete_outline</mat-icon>
+  </header>
+
+  <main class="cart-list">
+    <div *ngIf="itensCarrinho.length === 0" class="empty-state">
+      <mat-icon class="empty-icon">shopping_cart</mat-icon>
+      <p>Seu carrinho está vazio!</p>
+    </div>
+
+    <div *ngFor="let item of itensCarrinho" class="cart-item">
+      
+      <img *ngIf="item.urlImagem" [src]="item.urlImagem" [alt]="item.nome" class="item-image">
+      <mat-icon *ngIf="!item.urlImagem" class="item-placeholder">local_pizza</mat-icon>
+
+      <div class="item-details">
+        <h3 class="item-name">{{ item.nome }}</h3>
+        <p class="item-description">{{ item.descricao }}</p>
+        <span class="item-price">R$ {{ item.preco | number:'1.2-2':'pt' }}</span>
+      </div>
+
+      <div class="item-controls">
+        <div class="quantity-control">
+          <button (click)="atualizarQuantidade(item, -1)">-</button>
+          <span class="quantity-display">{{ item.quantidade }}</span>
+          <button (click)="atualizarQuantidade(item, 1)">+</button>
+        </div>
+        <span class="item-subtotal">R$ {{ item.subtotal | number:'1.2-2':'pt' }}</span>
+      </div>
+    </div>
+  </main>
+
+  <section class="cart-summary">
+    <div class="summary-line">
+      <span>Subtotal</span>
+      <span>R$ {{ valorTotal | number:'1.2-2':'pt' }}</span>
+    </div>
+    <div class="summary-line">
+      <span>Entrega</span>
+      <span class="shipping-value">R$ 10,00</span>
+    </div>
+    
+    <div class="summary-line total">
+      <span>Total a Pagar</span>
+      <span>R$ {{ (valorTotal + 10) | number:'1.2-2':'pt' }}</span>
+    </div>
+  </section>
+  
+  <button class="checkout-button" (click)="irParaCheckout()">
+    Finalizar Pedido
+  </button>
+  
+</div>

@@ -1,0 +1,123 @@
+<!-- HomeComponent - Pizzaria (mobile-first) -->
+<!-- Usar somente classes Tailwind para estilos. -->
+
+<section class="min-h-screen bg-gray-50 p-4 sm:p-6">
+	<!-- Title -->
+	<header class="max-w-3xl mx-auto text-center my-6">
+		<h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+			<span class="text-red-600">Prato Feito</span>
+			<span class="mx-2 text-yellow-400">PIZZARIA</span>
+		</h1>
+	</header>
+
+	<!-- Promo Banner -->
+	<div class="max-w-3xl mx-auto">
+		<a href="#" class="block bg-red-800 hover:bg-red-700 transform hover:scale-[1.02] transition-transform duration-200 rounded-lg shadow-lg overflow-hidden p-4 flex items-center gap-4">
+			<!-- Icon -->
+			<div class="flex-shrink-0 bg-white/10 rounded-full w-12 h-12 flex items-center justify-center text-2xl">
+				🍕
+			</div>
+			<!-- Texts -->
+			<div class="flex-1">
+				<div class="text-xs text-yellow-200 font-semibold uppercase">SUPER PROMOÇÃO</div>
+				<div class="mt-1 text-white text-lg sm:text-xl font-bold">50% OFF HOJE — Só nas pizzas selecionadas</div>
+			</div>
+			<!-- CTA small -->
+			<div class="hidden sm:flex items-center">
+				<span class="inline-block bg-yellow-400 text-red-800 font-bold px-3 py-1 rounded">Ver</span>
+			</div>
+		</a>
+	</div>
+
+	<!-- Search bar (routerLink to /cliente/busca) -->
+	<div class="max-w-3xl mx-auto mt-6">
+		<a routerLink="/cliente/busca" class="flex items-center gap-3 bg-white rounded-full px-4 py-3 shadow-sm hover:shadow-md transition-shadow">
+			<svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
+			<span class="text-gray-500">Buscar no Cardápio...</span>
+		</a>
+	</div>
+
+	<!-- Categories - horizontal scroll -->
+	<div class="max-w-3xl mx-auto mt-6">
+		<!-- Removendo scrollbar visual com .scrollbar-hide -->
+		<div class="flex gap-4 overflow-x-auto scrollbar-hide py-2 -mx-2 px-2">
+			<!-- Category: Pizza -->
+			<button class="flex-shrink-0 w-20 sm:w-24 bg-yellow-50 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-sm">
+				<div class="text-2xl">🍕</div>
+				<div class="mt-2 text-xs font-medium text-gray-700">Pizza</div>
+			</button>
+
+			<!-- Category: Bebidas -->
+			<button class="flex-shrink-0 w-20 sm:w-24 bg-blue-50 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-sm">
+				<div class="text-2xl">🥤</div>
+				<div class="mt-2 text-xs font-medium text-gray-700">Bebidas</div>
+			</button>
+
+			<!-- Category: Sobremesa -->
+			<button class="flex-shrink-0 w-20 sm:w-24 bg-pink-50 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-sm">
+				<div class="text-2xl">🍰</div>
+				<div class="mt-2 text-xs font-medium text-gray-700">Sobremesa</div>
+			</button>
+
+			<!-- Category: Especiais -->
+			<button class="flex-shrink-0 w-20 sm:w-24 bg-green-50 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-sm">
+				<div class="text-2xl">⭐</div>
+				<div class="mt-2 text-xs font-medium text-gray-700">Especiais</div>
+			</button>
+		</div>
+	</div>
+
+	<!-- Products list -->
+	<main class="max-w-3xl mx-auto mt-6">
+		<h2 class="text-lg font-bold text-gray-800 mb-3">Pizzas Populares</h2>
+
+		<div class="space-y-4">
+			<!-- Card 1 -->
+			<article class="relative bg-white rounded-lg shadow p-4 flex items-start gap-4">
+				<img src="https://placehold.co/100x100/fecaca/9f1239?text=Item" alt="Pizza 1" class="w-24 h-24 rounded-md object-cover flex-shrink-0">
+				<div class="flex-1">
+					<h3 class="text-md sm:text-lg font-bold text-gray-800">Margherita Especial</h3>
+					<p class="text-sm text-gray-500 mt-1">Molho de tomate artesanal, mussarela, manjericão fresco.</p>
+					<div class="mt-3 flex items-center justify-between">
+						<span class="text-red-600 font-semibold text-lg">R$ 29,90</span>
+					</div>
+				</div>
+				<button class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-yellow-400 hover:bg-yellow-500 text-red-800 flex items-center justify-center font-bold shadow">+</button>
+			</article>
+
+			<!-- Card 2 -->
+			<article class="relative bg-white rounded-lg shadow p-4 flex items-start gap-4">
+				<img src="https://placehold.co/100x100/fecaca/9f1239?text=Item" alt="Pizza 2" class="w-24 h-24 rounded-md object-cover flex-shrink-0">
+				<div class="flex-1">
+					<h3 class="text-md sm:text-lg font-bold text-gray-800">Pepperoni Crocante</h3>
+					<p class="text-sm text-gray-500 mt-1">Fatias generosas de pepperoni e borda crocante.</p>
+					<div class="mt-3 flex items-center justify-between">
+						<span class="text-red-600 font-semibold text-lg">R$ 34,50</span>
+					</div>
+				</div>
+				<button class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-yellow-400 hover:bg-yellow-500 text-red-800 flex items-center justify-center font-bold shadow">+</button>
+			</article>
+
+			<!-- Card 3 -->
+			<article class="relative bg-white rounded-lg shadow p-4 flex items-start gap-4">
+				<img src="https://placehold.co/100x100/fecaca/9f1239?text=Item" alt="Pizza 3" class="w-24 h-24 rounded-md object-cover flex-shrink-0">
+				<div class="flex-1">
+					<h3 class="text-md sm:text-lg font-bold text-gray-800">Quatro Queijos Premium</h3>
+					<p class="text-sm text-gray-500 mt-1">Blend de queijos especiais, toque de mel opcional.</p>
+					<div class="mt-3 flex items-center justify-between">
+						<span class="text-red-600 font-semibold text-lg">R$ 38,00</span>
+					</div>
+				</div>
+				<button class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-yellow-400 hover:bg-yellow-500 text-red-800 flex items-center justify-center font-bold shadow">+</button>
+			</article>
+
+		</div>
+	</main>
+
+</section>
+
+<!-- Scrollbar-hide helper (remove barras visuais em overflow-x) -->
+<style>
+	.scrollbar-hide::-webkit-scrollbar { display: none; }
+	.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

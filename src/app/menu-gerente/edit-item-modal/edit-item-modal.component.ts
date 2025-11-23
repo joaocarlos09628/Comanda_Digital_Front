@@ -68,8 +68,8 @@ export class EditItemModalComponent implements OnInit {
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        // Atualiza a pré-visualização (editForm.foto) com o Base64 da imagem
-        this.editForm.foto = reader.result as string;
+        // Atualiza a pré-visualização (editForm.UrlImage) com o Base64 da imagem
+        this.editForm.UrlImage = reader.result as string;
       };
       reader.readAsDataURL(file);
     }

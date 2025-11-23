@@ -10,6 +10,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+// [NOVO] Importações para Comunicação com o Back-end
+import { DishService } from '../../../services/dish.service'; // Serviço que você criou
 
 // Componentes do menu-gerente que este componente usa
 import { AddItemModalComponent } from '../add-item-modal/add-item-modal.component';
@@ -18,164 +20,204 @@ import { EditItemModalComponent } from '../edit-item-modal/edit-item-modal.compo
 
 // ============================================================================
 // INTERFACE - Define a estrutura de cada item do cardápio
+// ATENÇÃO: Se o Back-end usa 'price: number' e 'name', você terá que fazer o mapeamento
+// no DishService ou corrigir esta interface (o que foi solicitado a NÃO fazer).
 // ============================================================================
 // MenuItem define o que cada item do menu tem: id, foto, nome, preço, etc
 export interface MenuItem {
-  id: number;                // ID único do item (para identificar)
-  foto?: string;             // Caminho da foto do item
-  nome: string;              // Nome do item (Pizza Mussarela, Coca, etc)
-  preco: string;             // Preço formatado (R$ 49,90)
-  categoria: string;         // Categoria do item (Pizza, Bebida, Doce)
-  tag?: string;              // Tag adicional (Mussarela, Coca, etc)
-  descricao?: string;        // Descrição do item
+  id: number;                // ID único do item (para identificar)
+  UrlImage?: string;             // Caminho da foto do item
+  nome: string;              // Nome do item (Pizza Mussarela, Coca, etc)
+  preco: string;             // Preço formatado (R$ 49,90)
+  categoria: string;         // Categoria do item (Pizza, Bebida, Doce)
+  tag?: string;              // Tag adicional (Mussarela, Coca, etc)
+  descricao?: string;        // Descrição do item
 }
 
 // ============================================================================
 // DECORATOR @Component - Configuração do componente
 // ============================================================================
-// selector: Nome da tag HTML que esse componente usa (<app-overview>)
-// standalone: true = Componente funciona sozinho sem precisar de módulo
-// imports: Módulos e componentes que este componente precisa usar
-// templateUrl: Arquivo HTML que renderiza a interface
-// styleUrls: Arquivo CSS com os estilos deste componente
 @Component({
-  selector: 'app-overview',
-  standalone: true, 
-  imports: [
-    CommonModule,               // Fornece *ngIf, *ngFor, etc.
-    FormsModule,                // Fornece [(ngModel)] para inputs
-    AddItemModalComponent,      // Modal para adicionar novos itens
-    RemovePopupComponent,       // Popup para confirmar remoção
-    EditItemModalComponent      // Modal para editar itens existentes
-  ],
-  templateUrl: './overview.component.html',
-  styleUrls: ['./overview.component.css']
+  selector: 'app-overview',
+  standalone: true, 
+  imports: [
+    CommonModule,               // Fornece *ngIf, *ngFor, etc.
+    FormsModule,                // Fornece [(ngModel)] para inputs
+    AddItemModalComponent,      // Modal para adicionar novos itens
+    RemovePopupComponent,       // Popup para confirmar remoção
+    EditItemModalComponent      // Modal para editar itens existentes
+  ],
+  templateUrl: './overview.component.html',
+  styleUrls: ['./overview.component.css']
 })
 export class OverviewComponent implements OnInit {
+  
+  // [MODIFICADO] Inicializa vazio para carregar dados do Back-end
+  menuItems: MenuItem[] = []; 
+
+ filteredItems: MenuItem[] = []; // Inicializa como vazio. Será preenchido após carregar os dados.
+  searchTerm: string = '';
+  
+  // ============================================================================
+  // CONSTRUCTOR - Injeção de dependência do serviço
+  // ============================================================================
+  constructor(private dishService: DishService) {} // [NOVO]
+
+  // ============================================================================
+  // FILTROS - Variáveis que controlam como os itens são exibidos
+  // ============================================================================
+  // selectedCategory: A categoria selecionada no momento
+  // Começa com 'Todas' para mostrar todos os itens sem filtro
+  selectedCategory: string = 'Todas';
+
+  // allCategories: Lista das categorias que aparecem como botões de filtro
+  // Deve ser igual às categorias dos itens (Pizza, Doce, Bebida)
+  allCategories: string[] = ['Todas', 'Pizza', 'Doce', 'Bebida'];
+
+  // ============================================================================
+  // MODAIS - Variáveis para controlar quais modais estão abertos ou fechados
+  // ============================================================================
+  // isAddItemModalOpen: true = modal de adicionar está visível, false = escondido
+  isAddItemModalOpen: boolean = false;
+
+  // isEditItemModalOpen: true = modal de editar está visível, false = escondido
+  isEditItemModalOpen: boolean = false; 
+
+  // isRemovePopupOpen: true = popup de confirmação de remoção está visível, false = escondido
+  isRemovePopupOpen: boolean = false;
+
+  // selectedItem: Armazena o item que está sendo editado ou removido
+  // null = nenhum item selecionado no momento
+  selectedItem: MenuItem | null = null;
+
+  // ============================================================================
+  // MÉTODO LIFECYCLE - ngOnInit executa quando o componente carrega
+  // ============================================================================
+  ngOnInit(): void {
+    this.loadDishes(); // [MODIFICADO] Chama a função de carregamento do Back-end
+  }  
   
-  menuItems: MenuItem[] = [
-    { id: 1, foto: 'pizza_sq.jpg', nome: 'Pizza Mussarela', preco: 'R$ 49,90', categoria: 'Pizza', tag: 'Mussarela', descricao: 'Descrição da Pizza Mussarela.' },
-    { id: 2, foto: 'pizza_sq.jpg', nome: 'Pizza Pepperoni', preco: 'R$ 49,90', categoria: 'Pizza', tag: 'Pepperoni', descricao: 'Descrição da Pizza Pepperoni.' },
-    { id: 3, foto: 'coca_sq.jpg', nome: 'Coca', preco: 'R$ 8,00', categoria: 'Bebida', tag: 'Coca', descricao: 'Bebida refrescante de 350ml.' },
-    { id: 4, foto: 'chocolate_sq.jpg', nome: 'Pizza Chocolate', preco: 'R$ 56,00', categoria: 'Doce', tag: 'Chocolate', descricao: 'Pizza doce com chocolate e frutas.' },
-  ];
-
- filteredItems: MenuItem[] = [...this.menuItems];
-  searchTerm: string = '';
-  
   // ============================================================================
-  // FILTROS - Variáveis que controlam como os itens são exibidos
+  // MÉTODO DE LEITURA (READ) - Carrega todos os pratos do Back-end
   // ============================================================================
-  // selectedCategory: A categoria selecionada no momento
-  // Começa com 'Todas' para mostrar todos os itens sem filtro
-  selectedCategory: string = 'Todas';
+  loadDishes(): void {
+    this.dishService.findAll().subscribe({
+        next: (dishes) => {
+            // Assume-se que o serviço DishService mapeia a resposta JSON para MenuItem[]
+            this.menuItems = dishes;
+            
+            // Opcional: Atualiza a lista de categorias dinamicamente
+            const uniqueCategories = new Set(dishes.map(d => d.categoria));
+            this.allCategories = ['Todas', ...Array.from(uniqueCategories)];
 
-  // allCategories: Lista das categorias que aparecem como botões de filtro
-  // Deve ser igual às categorias dos itens (Pizza, Doce, Bebida)
-  allCategories: string[] = ['Todas', 'Pizza', 'Doce', 'Bebida'];
-
-  // ============================================================================
-  // MODAIS - Variáveis para controlar quais modais estão abertos ou fechados
-  // ============================================================================
-  // isAddItemModalOpen: true = modal de adicionar está visível, false = escondido
-  isAddItemModalOpen: boolean = false;
-
-  // isEditItemModalOpen: true = modal de editar está visível, false = escondido
-  isEditItemModalOpen: boolean = false; 
-
-  // isRemovePopupOpen: true = popup de confirmação de remoção está visível, false = escondido
-  isRemovePopupOpen: boolean = false;
-
-  // selectedItem: Armazena o item que está sendo editado ou removido
-  // null = nenhum item selecionado no momento
-  selectedItem: MenuItem | null = null;
-
-  // ============================================================================
-  // MÉTODO LIFECYCLE - ngOnInit executa quando o componente carrega
-  // ============================================================================
-  // Chamamos applyCombinedFilter para aplicar os filtros quando o componente inicia
-  ngOnInit(): void {
-    this.applyCombinedFilter(); // CORRIGIDO
-  }  // --- Lógica de Abertura/Fechamento ---
-
-  // ============================================================================
-  // MÉTODOS PARA ABRIR/FECHAR MODAIS
-  // ============================================================================
-  
-  // openAddItemModal: Abre o modal para adicionar um novo item ao cardápio
-  openAddItemModal(): void {
-    this.isAddItemModalOpen = true;
+            this.applyCombinedFilter(); // CORRIGIDO: Filtra a lista APÓS os dados serem carregados.
+        },
+        error: (err) => {
+            console.error('Erro ao carregar pratos do Back-end:', err);
+            // Em caso de erro, a lista permanece vazia
+        }
+    });
   }
-  
-  // openEditItem: Abre o modal para editar um item existente
-  // Recebe o item como parâmetro e armazena em selectedItem
-  openEditItem(item: MenuItem): void { // <-- Função que o HTML precisa
-    this.selectedItem = item; 
-    this.isEditItemModalOpen = true; 
-  }
+  // --- Lógica de Abertura/Fechamento ---
 
-  // openRemoveConfirm: Abre o popup para confirmar a remoção de um item
-  // Armazena o item selecionado antes de pedir confirmação
-  openRemoveConfirm(item: MenuItem): void {
-    this.selectedItem = item;
-    this.isRemovePopupOpen = true;
-  }
-  
-  // closeModal: Fecha todos os modais e reseta as variáveis
-  // Também aplica os filtros novamente para atualizar a lista após operações
-  closeModal(): void {
-    this.isAddItemModalOpen = false;
-    this.isEditItemModalOpen = false; 
-    this.isRemovePopupOpen = false;
-    this.selectedItem = null;
-    this.applyCombinedFilter(); // CORRIGIDO
-  }
+  // ============================================================================
+  // MÉTODOS PARA ABRIR/FECHAR MODAIS
+  // ============================================================================
+  
+  // openAddItemModal: Abre o modal para adicionar um novo item ao cardápio
+  openAddItemModal(): void {
+    this.isAddItemModalOpen = true;
+  }
+  
+  // openEditItem: Abre o modal para editar um item existente
+  // Recebe o item como parâmetro e armazena em selectedItem
+  openEditItem(item: MenuItem): void { // <-- Função que o HTML precisa
+    this.selectedItem = item; 
+    this.isEditItemModalOpen = true; 
+  }
 
-  // ============================================================================
-  // MÉTODO PARA FILTRO POR CATEGORIA
-  // ============================================================================
-  
-  // applyCategoryFilter: Muda a categoria selecionada e aplica o filtro
-  // Recebe a categoria (Pizza, Doce, Bebida ou Todas)
-  applyCategoryFilter(category: string): void {
-    // Define qual categoria está selecionada (muda visual dos botões)
-    this.selectedCategory = category;
+  // openRemoveConfirm: Abre o popup para confirmar a remoção de um item
+  // Armazena o item selecionado antes de pedir confirmação
+  openRemoveConfirm(item: MenuItem): void {
+    this.selectedItem = item;
+    this.isRemovePopupOpen = true;
+  }
+  
+  // closeModal: Fecha todos os modais e reseta as variáveis
+  // Também aplica os filtros novamente para atualizar a lista após operações
+  closeModal(): void {
+    this.isAddItemModalOpen = false;
+    this.isEditItemModalOpen = false; 
+    this.isRemovePopupOpen = false;
+    this.selectedItem = null;
+    this.loadDishes(); // [MODIFICADO] Recarrega do Back-end para atualizar a lista
+  }
 
-    // Aplica o filtro combinado (texto + categoria) para atualizar a lista
-    this.applyCombinedFilter();
-  }
+  // ============================================================================
+  // MÉTODO PARA FILTRO POR CATEGORIA
+  // ============================================================================
+  
+  // applyCategoryFilter: Muda a categoria selecionada e aplica o filtro
+  // Recebe a categoria (Pizza, Doce, Bebida ou Todas)
+  applyCategoryFilter(category: string): void {
+    // Define qual categoria está selecionada (muda visual dos botões)
+    this.selectedCategory = category;
 
-  // ============================================================================
-  // MÉTODOS PARA ADICIONAR, EDITAR E REMOVER ITENS (CRUD)
-  // ============================================================================
-  
-  // onItemAdded: Executado quando um novo item é adicionado via modal
-  // Adiciona o item no início da lista e fecha o modal
-  onItemAdded(newItem: MenuItem): void {
-    this.menuItems.unshift({ ...newItem, id: Date.now() });
-    this.closeModal(); 
-  }
-  
-  // onItemUpdated: Executado quando um item é editado via modal
-  // Encontra o item na lista e substitui suas informações
-  onItemUpdated(updatedItem: MenuItem): void { // <-- Função que o HTML precisa
-    if (this.selectedItem) {
-      const index = this.menuItems.findIndex(i => i.id === this.selectedItem!.id);
-      if (index !== -1) {
-        this.menuItems[index] = { ...this.menuItems[index], ...updatedItem };
-      }
-    }
-    this.closeModal();
-  }
+    // Aplica o filtro combinado (texto + categoria) para atualizar a lista
+    this.applyCombinedFilter();
+  }
 
-  // onRemoveConfirmed: Executado quando o usuário confirma a remoção de um item
-  // Remove o item da lista e fecha o popup
-  onRemoveConfirmed(): void {
-    if (this.selectedItem) {
-      this.menuItems = this.menuItems.filter(i => i.id !== this.selectedItem!.id);
-    }
-    this.closeModal();
-  } // Lógica de Filtro COMBINADA (Texto + Categoria)
+  // ============================================================================
+  // MÉTODOS PARA ADICIONAR, EDITAR E REMOVER ITENS (CRUD) - LÓGICA DE BACK-END
+  // ============================================================================
+  
+  // onItemAdded: Executado quando um novo item é adicionado via modal
+  // Chama o Back-end para criar o item
+  onItemAdded(newItem: MenuItem): void {
+    // [MODIFICADO] Chamada ao Back-end (POST)
+    this.dishService.create(newItem).subscribe({
+        next: (createdDish) => {
+            this.menuItems.unshift(createdDish); // Adiciona o item retornado com ID
+            this.closeModal(); 
+        },
+        error: (e) => console.error('Erro ao adicionar prato:', e)
+    });
+  }
+  
+  // onItemUpdated: Executado quando um item é editado via modal
+  // Encontra o item na lista e substitui suas informações
+  onItemUpdated(updatedItem: MenuItem): void { // <-- Função que o HTML precisa
+    if (this.selectedItem && this.selectedItem.id) {
+        // [MODIFICADO] Chamada ao Back-end (PUT)
+        this.dishService.update(this.selectedItem.id, updatedItem).subscribe({
+            next: (updatedDish) => {
+                const index = this.menuItems.findIndex(i => i.id === updatedDish.id);
+                if (index !== -1) {
+                    this.menuItems[index] = updatedDish;
+                }
+                this.closeModal();
+            },
+            error: (e) => console.error('Erro ao atualizar prato:', e)
+        });
+    }
+  }
+
+  // onRemoveConfirmed: Executado quando o usuário confirma a remoção de um item
+  // Remove o item da lista e fecha o popup
+  onRemoveConfirmed(): void {
+    if (this.selectedItem && this.selectedItem.id) {
+        // [MODIFICADO] Chamada ao Back-end (DELETE)
+        this.dishService.delete(this.selectedItem.id).subscribe({
+            next: () => {
+                // Remove o item da lista local após o sucesso do Back-end
+                this.menuItems = this.menuItems.filter(i => i.id !== this.selectedItem!.id);
+                this.closeModal();
+            },
+            error: (e) => console.error('Erro ao remover prato:', e)
+        });
+    }
+  } 
+  // Lógica de Filtro COMBINADA (Texto + Categoria)
   applyCombinedFilter(): void {
     const term = this.searchTerm.trim().toLowerCase();
     
