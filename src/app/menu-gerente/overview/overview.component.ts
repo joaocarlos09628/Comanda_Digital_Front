@@ -174,13 +174,23 @@ export class OverviewComponent implements OnInit {
   // onItemAdded: Executado quando um novo item é adicionado via modal
   // Chama o Back-end para criar o item
   onItemAdded(newItem: MenuItem): void {
+    // Log para depuração do payload recebido do modal
+    console.log('[Overview] onItemAdded payload:', newItem);
+
     // [MODIFICADO] Chamada ao Back-end (POST)
     this.dishService.create(newItem).subscribe({
         next: (createdDish) => {
+            console.log('[Overview] createdDish:', createdDish);
             this.menuItems.unshift(createdDish); // Adiciona o item retornado com ID
             this.closeModal(); 
         },
-        error: (e) => console.error('Erro ao adicionar prato:', e)
+        error: (e) => {
+            console.error('Erro ao adicionar prato:', e);
+            // Exibe mensagem amigável com detalhe do status/resposta quando disponível
+            const status = e?.status || 'desconhecido';
+            const body = e?.error || e?.message || JSON.stringify(e);
+            alert(`Falha ao adicionar prato (status: ${status}). Resposta: ${typeof body === 'string' ? body : JSON.stringify(body)}`);
+        }
     });
   }
   

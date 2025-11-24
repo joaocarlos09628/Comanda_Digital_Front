@@ -12,14 +12,14 @@
       
       <!-- Preview da imagem: usa editForm.foto (pode ser URL ou base64) -->
       <div class="image-preview-container">
-          <img [src]="editForm.foto || 'placeholder.jpg'" alt="Imagem do Item" class="item-image-preview">
+          <img [src]="editForm.UrlImage || 'placeholder.jpg'" alt="Imagem do Item" class="item-image-preview">
       </div>
 
      <!-- Input de imagem: texto (URL/base64) + input file escondido -->
      <div class="form-group">
        <label for="imagem">URL ou Arquivo de Imagem</label>
        <div class="image-input-container">
-         <input type="text" id="imagem" name="imagem" placeholder="URL da imagem" [(ngModel)]="editForm.foto" name="foto">
+         <input type="text" id="imagem" name="imagem" placeholder="URL da imagem" [(ngModel)]="editForm.UrlImage" name="foto">
          <input type="file" #fileInput hidden (change)="onFileSelected($event)" accept="image/png">
          <span class="upload-icon" (click)="fileInput.click()"> 📎 </span>
        </div>

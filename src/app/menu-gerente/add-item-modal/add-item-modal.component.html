@@ -9,27 +9,32 @@
     <form (ngSubmit)="onSubmit()">
       
       <!-- Campo de imagem: permite URL ou seleção de arquivo local -->
+      <!-- Preview da imagem (igual ao editar) -->
+      <div class="image-preview-container">
+          <img [src]="newItem.UrlImage || 'placeholder.jpg'" alt="Prévia da imagem" class="item-image-preview">
+      </div>
+
       <div class="form-group">
-  <label for="imagem">Imagem do Item</label>
-  <div class="image-input-container">
-    <!-- Mostra a string que está em newItem.foto (pode ser URL ou texto com nome do arquivo) -->
-    <input type="text" id="imagem" name="imagem" placeholder="URL da imagem" [ngModel]="newItem.foto">
-    
-    <!-- Input real de arquivo (escondido). Ao trocar, chama onFileSelected -->
-    <input 
-      type="file" 
-      #fileInput 
-      hidden 
-      (change)="onFileSelected($event)" 
-      accept="image/png" 
-    >
-    
-    <!-- Ícone clicável para abrir o seletor de arquivo -->
-    <span class="upload-icon" (click)="fileInput.click()">
-      📎 
-    </span>
-  </div>
-</div>
+        <label for="imagem">Imagem do Item</label>
+        <div class="image-input-container">
+          <!-- Mostra a string que está em newItem.UrlImage (pode ser URL ou base64) -->
+          <input type="text" id="imagem" name="imagem" placeholder="URL da imagem" [(ngModel)]="newItem.UrlImage">
+
+          <!-- Input real de arquivo (escondido). Ao trocar, chama onFileSelected -->
+          <input 
+            type="file" 
+            #fileInput 
+            hidden 
+            (change)="onFileSelected($event)" 
+            accept="image/*" 
+          >
+
+          <!-- Ícone clicável para abrir o seletor de arquivo -->
+          <span class="upload-icon" (click)="fileInput.click()">
+            📎 
+          </span>
+        </div>
+      </div>
 
       <!-- Nome (obrigatório) -->
       <div class="form-group">
@@ -50,7 +55,7 @@
       <!-- Preço (obrigatório) -->
       <div class="form-group">
         <label>Preço *</label>
-        <input type="number" [(ngModel)]="newItem.preco" name="preco" required placeholder="0">
+        <input type="text" [(ngModel)]="newItem.preco" name="preco" required placeholder="0,00" (input)="onPriceInput($event)" (blur)="formatPrice()" class="price-input">
       </div>
 
       <!-- Descrição -->

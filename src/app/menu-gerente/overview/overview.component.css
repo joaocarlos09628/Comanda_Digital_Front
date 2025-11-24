@@ -176,8 +176,13 @@
 .menu-table th, .menu-table td {
   padding: 12px 15px;                /* Espaçamento interno */
   text-align: left;                  /* Texto alinhado à esquerda */
-  border-bottom: 1px solid #ddd;     /* Borda embaixo em cada linha */
   vertical-align: middle;            /* Centraliza conteúdo verticalmente */
+}
+
+/* Desenha a linha de separação como borda do tr para evitar que células
+   com conteúdo posicionado (popups, ícones) interrompam a linha. */
+.menu-table tbody tr {
+  border-bottom: 1px solid #ddd;
 }
 
 /* Cabeçalho da tabela (Foto, Nome, Preço, etc) */
@@ -260,14 +265,34 @@
   gap: 12px;                         /* Espaço entre ícones */
   align-items: center;               /* Centraliza verticalmente */
   position: relative;                /* Para posicionar popup em relação a isso */
-  height: 40px;                      /* Altura para o popup */
+  height: 40px;                      /* Altura para o popup (restaurada) */
   cursor: pointer;                   /* Muda cursor para mão */
   user-select: none;                 /* Texto não é selecionável */
+  margin-top: 0;                      /* garante alinhamento vertical correto */
+}
+
+/* Wrapper interno para centralizar ícones dentro da célula */
+.action-icons-inner {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  height: 100%;
 }
 
 /* Ícone de editar (lápis) ao passar mouse */
 .action-icons .icon-edit:hover {
   color: #FF9422;                    /* Ícone fica laranja */
+}
+
+/* Forçar alinhamento preciso dos ícones dentro do container da célula */
+.action-icons span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  line-height: 1;
+  font-size: 1rem; /* garante tamanho consistente */
+  padding: 0; /* remove possíveis offsets por padding */
 }
 
 /* Ícone de remover (lixo) - cor padrão vermelha */
