@@ -67,6 +67,10 @@ export class MenuComponent implements OnInit {
     this.carrinhoService.adicionar(item);
   }
 
+  navegarParaBusca() {
+    this.router.navigate(['/cliente/busca']);
+  }
+
   // Retorna a contagem atual do carrinho (sincronamente)
   get contadorCarrinho() {
     // carrinhoService.listar() retorna array no nosso serviço de exemplo

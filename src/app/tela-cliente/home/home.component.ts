@@ -1,52 +1,70 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { DishService } from '../../../services/dish.service';
+import { MenuItem } from '../../menu-gerente/overview/overview.component';
+import { CarrinhoService } from '../../tela-cliente/carrinho.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  // Importações necessárias para usar *ngFor e routerLink no template
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent {
-  // Categorias exibidas na barra horizontal (usadas pelo template)
-  categories = [
-    { label: 'Pizza', icon: '🍕', bg: 'bg-yellow-50' },
-    { label: 'Bebidas', icon: '🥤', bg: 'bg-blue-50' },
-    { label: 'Sobremesa', icon: '🍰', bg: 'bg-pink-50' },
-    { label: 'Especiais', icon: '⭐', bg: 'bg-green-50' }
-  ];
+export class HomeComponent implements OnInit {
+  dishes: MenuItem[] = [];
+  filtered: MenuItem[] = [];
+  categories: string[] = [];
+  selectedCategory = 'Todas';
+  search = '';
 
-  // Produtos de exemplo que alimentam os cards (poderá vir de um serviço no futuro)
-  products = [
-    {
-      id: 1,
-      name: 'Margherita Especial',
-      description: 'Molho de tomate artesanal, mussarela, manjericão fresco.',
-      price: 29.9,
-      img: 'https://placehold.co/100x100/fecaca/9f1239?text=Item'
-    },
-    {
-      id: 2,
-      name: 'Pepperoni Crocante',
-      description: 'Fatias generosas de pepperoni e borda crocante.',
-      price: 34.5,
-      img: 'https://placehold.co/100x100/fecaca/9f1239?text=Item'
-    },
-    {
-      id: 3,
-      name: 'Quatro Queijos Premium',
-      description: 'Blend de queijos especiais, toque de mel opcional.',
-      price: 38.0,
-      img: 'https://placehold.co/100x100/fecaca/9f1239?text=Item'
-    }
-  ];
+  constructor(private dishService: DishService, private carrinho: CarrinhoService, private router: Router) {}
 
-  // Ação de adicionar ao carrinho (aqui só um stub que loga no console)
-  addToCart(product: any) {
-    console.log('Adicionar ao carrinho:', product);
-    // futuramente chamar um serviço de carrinho
+  get cartCount(): number {
+    return this.carrinho.listar().length;
+  }
+
+  ngOnInit(): void {
+    // Se vier de navigation state com termo de busca, aplica antes de renderizar
+    const s = history.state && (history.state as any).search;
+    if (s) this.search = s;
+    this.load();
+  }
+
+  openBusca() {
+    this.router.navigate(['/cliente/busca']);
+  }
+
+  load() {
+    this.dishService.findAll().subscribe({
+      next: (items) => {
+        this.dishes = items;
+        const set = new Set(items.map(i => i.categoria || 'Outros'));
+        this.categories = ['Todas', ...Array.from(set)];
+        this.applyFilter();
+      },
+      error: (e) => console.error('Erro ao carregar pratos', e)
+    });
+  }
+
+  applyFilter() {
+    const term = this.search.trim().toLowerCase();
+    this.filtered = this.dishes.filter(d => {
+      const matchCat = this.selectedCategory === 'Todas' || d.categoria === this.selectedCategory;
+      const matchText = !term || (d.nome && d.nome.toLowerCase().includes(term));
+      return matchCat && matchText;
+    });
+  }
+
+  onCategory(cat: string) {
+    this.selectedCategory = cat;
+    this.applyFilter();
+  }
+
+  addToCart(item: MenuItem) {
+    this.carrinho.adicionar({ ...item, quantidade: 1 });
   }
 }

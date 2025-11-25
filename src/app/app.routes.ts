@@ -36,16 +36,44 @@ export const routes: Routes = [
 		title: 'Cliente | Início' 
 	},
 
-  // Rota Padrão: Redireciona para o Gerente
-  { 
-    path: '', 
-    redirectTo: 'gerente', 
-    pathMatch: 'full' 
-  },
-  
-  // Rota Curinga
-  { 
-    path: '**', 
-    redirectTo: 'gerente' 
-  },
+	// Rota do carrinho do cliente
+	{
+		path: 'cliente/carrinho',
+		loadComponent: () => import('./tela-cliente/carrinho/carrinho.component').then(m => m.CarrinhoComponent),
+		title: 'Carrinho'
+	},
+
+	// Rota de checkout
+	{
+		path: 'cliente/checkout',
+		loadComponent: () => import('./tela-cliente/checkout/checkout.component').then(m => m.CheckoutComponent),
+		title: 'Checkout'
+	},
+
+	// Rota de busca (tela móvel)
+	{
+		path: 'cliente/busca',
+		loadComponent: () => import('./tela-cliente/busca/busca.component').then(m => m.BuscaComponent),
+		title: 'Buscar'
+	},
+
+	// Histórico / Favoritos (usar histórico como placeholder)
+	{
+		path: 'cliente/historico',
+		loadComponent: () => import('./tela-cliente/historico/historico.component').then(m => m.HistoricoComponent),
+		title: 'Histórico'
+	},
+
+	// Rota Padrão: 
+	{
+		path: '',
+		redirectTo: 'gerente',
+		pathMatch: 'full'
+	},
+
+	// Rota Curinga -> Cliente
+	{
+		path: '**',
+		redirectTo: 'gerente'
+	},
 ];

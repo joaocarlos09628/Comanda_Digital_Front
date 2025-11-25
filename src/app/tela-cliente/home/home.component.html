@@ -1,123 +1,95 @@
-<!-- HomeComponent - Pizzaria (mobile-first) -->
-<!-- Usar somente classes Tailwind para estilos. -->
-
-<section class="min-h-screen bg-gray-50 p-4 sm:p-6">
-	<!-- Title -->
-	<header class="max-w-3xl mx-auto text-center my-6">
-		<h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
-			<span class="text-red-600">Prato Feito</span>
-			<span class="mx-2 text-yellow-400">PIZZARIA</span>
-		</h1>
-	</header>
-
-	<!-- Promo Banner -->
-	<div class="max-w-3xl mx-auto">
-		<a href="#" class="block bg-red-800 hover:bg-red-700 transform hover:scale-[1.02] transition-transform duration-200 rounded-lg shadow-lg overflow-hidden p-4 flex items-center gap-4">
-			<!-- Icon -->
-			<div class="flex-shrink-0 bg-white/10 rounded-full w-12 h-12 flex items-center justify-center text-2xl">
-				🍕
-			</div>
-			<!-- Texts -->
-			<div class="flex-1">
-				<div class="text-xs text-yellow-200 font-semibold uppercase">SUPER PROMOÇÃO</div>
-				<div class="mt-1 text-white text-lg sm:text-xl font-bold">50% OFF HOJE — Só nas pizzas selecionadas</div>
-			</div>
-			<!-- CTA small -->
-			<div class="hidden sm:flex items-center">
-				<span class="inline-block bg-yellow-400 text-red-800 font-bold px-3 py-1 rounded">Ver</span>
-			</div>
-		</a>
+<!-- HomeComponent dynamic - lista de produtos vindo do DishService -->
+<div class="home-root">
+  <header class="home-header">
+	<div class="greetings">
+	  <div class="hello">Olá X</div>
+	  <div class="address">Endereço: Rua sei lá / faltou ideia</div>
 	</div>
+	<div class="avatar">👤</div>
+  </header>
 
-	<!-- Search bar (routerLink to /cliente/busca) -->
-	<div class="max-w-3xl mx-auto mt-6">
-		<a routerLink="/cliente/busca" class="flex items-center gap-3 bg-white rounded-full px-4 py-3 shadow-sm hover:shadow-md transition-shadow">
-			<svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
-			<span class="text-gray-500">Buscar no Cardápio...</span>
-		</a>
+  <div class="search-area">
+    <input type="text" placeholder="O que vai pedir hoje?" [(ngModel)]="search" (focus)="openBusca()" (click)="openBusca()" />
+  </div>
+
+  <div class="banner">
+	<div class="banner-inner">
+	  <div class="banner-text">Leve 2<br/>Ganhe 1</div>
+	  <button class="btn-primary">Ir agora</button>
 	</div>
+  </div>
 
-	<!-- Categories - horizontal scroll -->
-	<div class="max-w-3xl mx-auto mt-6">
-		<!-- Removendo scrollbar visual com .scrollbar-hide -->
-		<div class="flex gap-4 overflow-x-auto scrollbar-hide py-2 -mx-2 px-2">
-			<!-- Category: Pizza -->
-			<button class="flex-shrink-0 w-20 sm:w-24 bg-yellow-50 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-sm">
-				<div class="text-2xl">🍕</div>
-				<div class="mt-2 text-xs font-medium text-gray-700">Pizza</div>
-			</button>
+  <div class="categories">
+	<button *ngFor="let c of categories" (click)="onCategory(c)" [class.active]="c===selectedCategory">{{c}}</button>
+  </div>
 
-			<!-- Category: Bebidas -->
-			<button class="flex-shrink-0 w-20 sm:w-24 bg-blue-50 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-sm">
-				<div class="text-2xl">🥤</div>
-				<div class="mt-2 text-xs font-medium text-gray-700">Bebidas</div>
-			</button>
-
-			<!-- Category: Sobremesa -->
-			<button class="flex-shrink-0 w-20 sm:w-24 bg-pink-50 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-sm">
-				<div class="text-2xl">🍰</div>
-				<div class="mt-2 text-xs font-medium text-gray-700">Sobremesa</div>
-			</button>
-
-			<!-- Category: Especiais -->
-			<button class="flex-shrink-0 w-20 sm:w-24 bg-green-50 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-sm">
-				<div class="text-2xl">⭐</div>
-				<div class="mt-2 text-xs font-medium text-gray-700">Especiais</div>
-			</button>
-		</div>
+  <section class="products-grid">
+	<div *ngFor="let p of filtered" class="card">
+	  <a [routerLink]="['/item-detalhe', p.id]">
+		<img [src]="p.UrlImage || 'https://placehold.co/300x200'" alt="{{p.nome}}" />
+	  </a>
+	  <div class="card-body">
+		<div class="card-title">{{p.nome}}</div>
+		<div class="card-price">{{p.preco}}</div>
+	  </div>
+	  <button class="add-btn" (click)="addToCart(p)">+</button>
 	</div>
+  </section>
 
-	<!-- Products list -->
-	<main class="max-w-3xl mx-auto mt-6">
-		<h2 class="text-lg font-bold text-gray-800 mb-3">Pizzas Populares</h2>
+  <nav class="bottom-nav">
+    <a routerLink="/cliente" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item" title="Home">
+      <!-- Home SVG -->
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <path d="M3 11.5L12 4l9 7.5" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M5 12v7a1 1 0 001 1h3v-5h6v5h3a1 1 0 001-1v-7" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </a>
 
-		<div class="space-y-4">
-			<!-- Card 1 -->
-			<article class="relative bg-white rounded-lg shadow p-4 flex items-start gap-4">
-				<img src="https://placehold.co/100x100/fecaca/9f1239?text=Item" alt="Pizza 1" class="w-24 h-24 rounded-md object-cover flex-shrink-0">
-				<div class="flex-1">
-					<h3 class="text-md sm:text-lg font-bold text-gray-800">Margherita Especial</h3>
-					<p class="text-sm text-gray-500 mt-1">Molho de tomate artesanal, mussarela, manjericão fresco.</p>
-					<div class="mt-3 flex items-center justify-between">
-						<span class="text-red-600 font-semibold text-lg">R$ 29,90</span>
-					</div>
-				</div>
-				<button class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-yellow-400 hover:bg-yellow-500 text-red-800 flex items-center justify-center font-bold shadow">+</button>
-			</article>
+    <a routerLink="/cliente/carrinho" routerLinkActive="active" class="nav-item" title="Carrinho">
+      <!-- Cart SVG -->
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <path d="M6 6h15l-1.5 9h-11L6 6z" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M6 6L4 2H2" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="10" cy="20" r="1" fill="#111" />
+        <circle cx="18" cy="20" r="1" fill="#111" />
+      </svg>
+        <span class="cart-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
+    </a>
 
-			<!-- Card 2 -->
-			<article class="relative bg-white rounded-lg shadow p-4 flex items-start gap-4">
-				<img src="https://placehold.co/100x100/fecaca/9f1239?text=Item" alt="Pizza 2" class="w-24 h-24 rounded-md object-cover flex-shrink-0">
-				<div class="flex-1">
-					<h3 class="text-md sm:text-lg font-bold text-gray-800">Pepperoni Crocante</h3>
-					<p class="text-sm text-gray-500 mt-1">Fatias generosas de pepperoni e borda crocante.</p>
-					<div class="mt-3 flex items-center justify-between">
-						<span class="text-red-600 font-semibold text-lg">R$ 34,50</span>
-					</div>
-				</div>
-				<button class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-yellow-400 hover:bg-yellow-500 text-red-800 flex items-center justify-center font-bold shadow">+</button>
-			</article>
+    <a routerLink="/cliente/historico" routerLinkActive="active" class="nav-item" title="Favoritos">
+      <!-- Heart SVG -->
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <path d="M20.8 7.2a4.6 4.6 0 00-6.5 0L12 9.5l-2.3-2.3a4.6 4.6 0 00-6.5 6.5L12 21l8.8-7.3a4.6 4.6 0 000-6.5z" stroke="#111" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </nav>
+</div>
 
-			<!-- Card 3 -->
-			<article class="relative bg-white rounded-lg shadow p-4 flex items-start gap-4">
-				<img src="https://placehold.co/100x100/fecaca/9f1239?text=Item" alt="Pizza 3" class="w-24 h-24 rounded-md object-cover flex-shrink-0">
-				<div class="flex-1">
-					<h3 class="text-md sm:text-lg font-bold text-gray-800">Quatro Queijos Premium</h3>
-					<p class="text-sm text-gray-500 mt-1">Blend de queijos especiais, toque de mel opcional.</p>
-					<div class="mt-3 flex items-center justify-between">
-						<span class="text-red-600 font-semibold text-lg">R$ 38,00</span>
-					</div>
-				</div>
-				<button class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-yellow-400 hover:bg-yellow-500 text-red-800 flex items-center justify-center font-bold shadow">+</button>
-			</article>
-
-		</div>
-	</main>
-
-</section>
-
-<!-- Scrollbar-hide helper (remove barras visuais em overflow-x) -->
 <style>
-	.scrollbar-hide::-webkit-scrollbar { display: none; }
-	.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .home-root { padding: 12px; max-width: 420px; margin: 0 auto; }
+  .home-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px }
+  .greetings .hello { font-weight:600 }
+  .search-area input { width:100%; padding:10px 12px; border-radius:999px; border:1px solid #e6e6e6 }
+  .banner { margin:12px 0 }
+  .banner-inner{ background:linear-gradient(90deg,#ff8c00,#ff5a3c); color:#fff; padding:18px; border-radius:18px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 8px 20px rgba(255,140,0,0.12) }
+  .categories { display:flex; gap:8px; overflow:auto; padding:8px 0; justify-content:center; flex-wrap:wrap }
+  .categories button{ padding:8px 12px; border-radius:999px; border:1px solid #e9ece8; background:#fff; color:#6b6b6b; font-weight:600; white-space:nowrap }
+  .categories button.active { background:#111; color:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.06) }
+  @media(max-width:420px){ .categories{ gap:8px; padding:6px 6px } }
+  .products-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:12px }
+  .card{ background:#fff; border-radius:10px; padding:8px; position:relative; box-shadow:0 4px 12px rgba(0,0,0,0.06) }
+  .card img{ width:100%; height:120px; object-fit:cover; border-radius:8px }
+  .card-body{ padding-top:8px }
+  .card-title{ font-weight:600; font-size:14px }
+  .card-price{ color:#ff8c00; margin-top:6px }
+  .add-btn{ position:absolute; right:8px; bottom:8px; background:#ECF1E8; color:#FF6200; border-radius:999px; width:36px; height:36px; border:none; display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; line-height:1; padding:0 }
+  .bottom-nav{ position:fixed; left:0; right:0; bottom:0; max-width:420px; margin:0 auto; display:flex; justify-content:space-around; padding:10px 0; background:transparent }
+
+  /* Bottom nav icons styling and active animation */
+  .bottom-nav .nav-item{ display:flex; align-items:center; justify-content:center; width:64px; height:64px; color:#777; transition: color .18s ease; }
+  .bottom-nav .nav-item svg{ width:28px; height:28px; transition: transform .2s cubic-bezier(.2,.9,.3,1), filter .18s ease; transform-origin:center; }
+  .bottom-nav .nav-item.active{ color:#ff8c00; }
+  .bottom-nav .nav-item.active svg{ transform: translateY(-6px) scale(1.18) rotate(-6deg); filter: drop-shadow(0 6px 12px rgba(255,140,0,0.15)); }
+  /* Force SVG paths to follow currentColor where possible */
+  .bottom-nav .nav-item svg path{ stroke: currentColor !important; fill: none !important }
 </style>

@@ -1,77 +1,118 @@
-// tela-cliente/carrinho/carrinho.component.ts
-
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon'; // Usando a interface anterior
-import { ItemMenu } from '../home/home.component';
+import { CommonModule } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
+import { CarrinhoService } from '../carrinho.service';
 
-// Estrutura de um item no carrinho
-interface CarrinhoItem extends ItemMenu {
+// Estrutura simples do item do carrinho usada neste componente
+interface CarrinhoItem {
+  id?: number | string;
+  nome: string;
+  descricao?: string;
+  preco: number | string;
+  UrlImage?: string;
+  urlImagem?: string;
   quantidade: number;
-  subtotal: number;
+  subtotal?: number;
 }
 
 @Component({
   selector: 'app-carrinho',
   standalone: true,
-  // Adicionando DecimalPipe para formatação de moeda
-  imports: [CommonModule, MatIconModule, DecimalPipe],
+  imports: [CommonModule, RouterModule],
   templateUrl: './carrinho.component.html',
-  styleUrls: ['./carrinho.component.scss']
+  styleUrls: ['./carrinho.component.css']
 })
 export class CarrinhoComponent implements OnInit {
 
   itensCarrinho: CarrinhoItem[] = [];
-  valorTotal: number = 0;
-  
-  // Simulação de injeção do serviço de carrinho
-  // constructor(private carrinhoService: CarrinhoService) {}
+  valorTotal = 0;
+
+  constructor(private carrinhoService: CarrinhoService, private router: Router) {}
+
+  goBack() {
+    // Volta para a tela do cliente. Usamos router.navigate para garantir comportamento consistente.
+    this.router.navigate(['/cliente']);
+  }
 
   ngOnInit(): void {
-    // Dados de exemplo para o carrinho
-    this.itensCarrinho = [
-      {
-        nome: 'Pizza Mussarela', descricao: 'Queijo, molho especial', preco: 49.90,
-        urlImagem: 'https://placehold.co/200x200/fecaca/9f1239?text=Mussarela',
-        quantidade: 1, subtotal: 49.90
-      },
-      {
-        nome: 'Pizza Pepperoni', descricao: 'Pepperoni crocante', preco: 49.90,
-        urlImagem: 'https://placehold.co/200x200/fecaca/9f1239?text=Pepperoni',
-        quantidade: 2, subtotal: 99.80
-      },
-      {
-        nome: 'Bebida Refri', descricao: 'Lata 350ml', preco: 6.00,
-        urlImagem: null,
-        quantidade: 4, subtotal: 24.00
-      }
-    ];
-    
+    // Busca itens do serviço de carrinho (retorna array em memória)
+    this.syncFromService();
+
+    // Assina eventos de mudança nos itens para atualizar a lista quando outro componente alterar
+    this.carrinhoService.itemsChanged$.subscribe(() => this.syncFromService());
+  }
+
+  private syncFromService() {
+    const stored = this.carrinhoService.listar() || [];
+    this.itensCarrinho = stored.map((it: any) => {
+      const precoNum = this.toNumberPrice(it.preco);
+      const quantidade = typeof it.quantidade === 'number' ? it.quantidade : (it.quantidade ? Number(it.quantidade) : 1);
+      return {
+        id: it.id,
+        nome: it.nome || it.name || '',
+        descricao: it.descricao || it.description || '',
+        preco: precoNum,
+        UrlImage: it.UrlImage || it.urlImage || it.urlImagem || it.image || '',
+        quantidade,
+        subtotal: precoNum * quantidade
+      } as CarrinhoItem;
+    });
     this.calcularTotais();
+  }
+
+  private toNumberPrice(v: any): number {
+    if (typeof v === 'number') return v;
+    if (!v) return 0;
+    let s = String(v);
+    s = s.replace(/R\$|\s/g, '');
+    s = s.replace(/\./g, '');
+    s = s.replace(/,/g, '.');
+    const n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
   }
 
   calcularTotais(): void {
     this.valorTotal = this.itensCarrinho.reduce((acc, item) => {
-      item.subtotal = item.preco * item.quantidade;
-      return acc + item.subtotal;
+      item.subtotal = this.toNumberPrice(item.preco) * (item.quantidade || 0);
+      return acc + (item.subtotal || 0);
     }, 0);
   }
 
-  // Lógica para aumentar ou diminuir a quantidade
   atualizarQuantidade(item: CarrinhoItem, delta: number): void {
-    item.quantidade += delta;
-    
-    if (item.quantidade <= 0) {
-      // Remover item se a quantidade for 0 ou menos
-      this.itensCarrinho = this.itensCarrinho.filter(i => i.nome !== item.nome);
+    if (delta < 0 && item.quantidade === 1) {
+      // se for diminuir quando quantidade=1, remove
+      this.removerItem(item);
+      return;
     }
-    
-    this.calcularTotais();
+    const nova = Math.max(0, (item.quantidade || 0) + delta);
+    // atualizar no serviço e sincronizar
+    this.carrinhoService.atualizarQuantidade(item, nova);
+    this.syncFromService();
   }
-  
-  // Ação para finalizar a compra
+
+  removerItem(item: CarrinhoItem) {
+    this.carrinhoService.remover(item);
+    this.syncFromService();
+  }
+
+  clearCart(): void {
+    // Limpa totalmente o carrinho no serviço e sincroniza
+    this.carrinhoService.clear();
+    this.syncFromService();
+  }
+
+  openDetail(item: CarrinhoItem) {
+    // se tivermos id, navega pela rota com id; caso contrário envia no state
+    if (item.id !== undefined && item.id !== null) {
+      this.router.navigate(['/item-detalhe', item.id]);
+      return;
+    }
+    this.router.navigateByUrl('/item-detalhe', { state: { item } });
+  }
+
   irParaCheckout(): void {
-    console.log('Navegando para o Checkout com total:', this.valorTotal);
-    // Aqui você usaria o Router para navegar para /checkout
+    // Navega para a tela de checkout
+    console.log('Navegando para checkout, valorTotal=', this.valorTotal, 'itens=', this.itensCarrinho.length);
+    this.router.navigate(['/cliente/checkout']).catch(err => console.error('Erro navegando para checkout', err));
   }
 }
