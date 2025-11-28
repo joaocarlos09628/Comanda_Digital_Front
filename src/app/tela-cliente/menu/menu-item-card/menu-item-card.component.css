@@ -4,27 +4,12 @@
   --cor-secundaria-texto: #6b7280; /* cinza */
 }
 
-.menu-card{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  background: linear-gradient(180deg, #fff 0%, #fff 60%);
-  border-radius:14px;
-  padding:14px 12px;
-  box-shadow: 0 12px 30px rgba(17,24,39,0.08);
-}
-
-.menu-card-body{ flex:1; padding-right:8px; cursor:pointer }
-.menu-card-top{ display:flex; align-items:center; justify-content:space-between; gap:8px }
-.menu-card-title{ margin:0; font-weight:800; color:var(--cor-primaria-texto); font-size:16px }
-.menu-card-desc{ margin:6px 0 0 0; color:var(--cor-secundaria-texto); font-size:13px }
-.menu-card-price{ color:#ff6a00; font-weight:800; font-size:15px }
-
-.menu-card-actions{ display:flex; align-items:center }
-.btn-add{ width:36px; height:36px; border-radius:10px; background: linear-gradient(180deg,#ff7a2e,#ff5a3c); color:#fff; border:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:18px }
-
-@media(max-width:420px){
-  .menu-card{ padding:12px; border-radius:12px }
-  .menu-card-title{ font-size:15px }
-}
+.menu-card{ display:flex; gap:12px; background:#fff; border-radius:10px; padding:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); position:relative; }
+.menu-card-left img{ width:120px; height:90px; object-fit:cover; border-radius:8px; }
+.menu-card-body{ flex:1; display:flex; flex-direction:column; justify-content:space-between; }
+.menu-card-title{ margin:0; font-weight:700; color:var(--cor-primaria-texto); }
+.menu-card-desc{ margin:6px 0 0 0; color:var(--cor-secundaria-texto); font-size:13px; }
+.menu-card-row{ display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+.menu-card-price{ color:var(--cor-principal-clara); font-weight:700; }
+.btn-plus{ width:36px; height:36px; border-radius:50%; background:#ECF1E8; border:none; color:#FF6200; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;  font-weight:700; font-size:18px; line-height:1; padding:0; }
+.menu-card-fav{ position:absolute; right:10px; bottom:10px; background:#fff; border-radius:50%; border:1px solid #eee; width:36px; height:36px; cursor:pointer; }
