@@ -31,3 +31,11 @@
 
 /* foco acessível */
 .perfil-wrapper input:focus-visible { box-shadow: 0 0 0 4px rgba(255,140,0,0.08); }
+
+/* link de ajuda do CEP */
+.cep-help-row{ margin-top:6px }
+.cep-help{ color:#0b69ff; text-decoration:underline; cursor:pointer; font-size:13px }
+
+/* notificação local (pequeno toast dentro do formulário) */
+.local-toast{ margin-top:12px; display:flex; justify-content:center }
+.local-toast .toast-inner{ background: rgba(17,24,39,0.95); color:#fff; padding:8px 12px; border-radius:10px; box-shadow:0 8px 20px rgba(0,0,0,0.16); font-weight:600 }

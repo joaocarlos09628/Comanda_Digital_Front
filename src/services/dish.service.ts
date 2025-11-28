@@ -21,9 +21,43 @@ export class DishService {
     const safePrice = Number.isFinite(rawPrice) ? rawPrice : 0;
     const precoStr = `R$ ${safePrice.toFixed(2).replace('.', ',')}`;
 
+    // Resolve campo de imagem retornado pelo backend. O backend pode
+    // devolver caminhos relativos (ex: "/images/xxx.png") — nesse caso
+    // precisamos prefixar com o host para o front conseguir carregar.
+    const backendOrigin = API_URL.replace('/dishes', '');
+    const possibleImageFields = [
+      (dish as any).UrlImage,
+      (dish as any).urlImage,
+      (dish as any).urlImagem,
+      (dish as any).imageUrl,
+      (dish as any).imagem,
+      (dish as any).path,
+      (dish as any).filePath,
+    ];
+    let rawImg: any = '';
+    for (const f of possibleImageFields) {
+      if (f && typeof f === 'string' && f.trim() !== '') {
+        rawImg = f;
+        break;
+      }
+    }
+
+    let resolvedImg = '';
+    if (typeof rawImg === 'string' && rawImg.trim() !== '') {
+      const t = rawImg.trim();
+      // já é URL completa
+      if (/^https?:\/\//i.test(t)) {
+        resolvedImg = t;
+      } else {
+        // caminho relativo do backend: prefixar com origin
+        // remove possíveis barras duplicadas
+        resolvedImg = `${backendOrigin}${t.startsWith('/') ? t : '/' + t}`;
+      }
+    }
+
     return {
       id: dish.id || 0,
-      UrlImage: (dish as any).UrlImage || (dish as any).urlImage || '',
+      UrlImage: resolvedImg,
       nome: dish.name || dish.nome || '',
       categoria: dish.category || dish.categoria || '',
       tag: dish.tag || '',
@@ -152,39 +186,25 @@ export class DishService {
       const blob = this.dataURLtoBlob(urlImageValue);
       const filename = `${(menuItem.nome || 'upload').replace(/\s+/g, '_')}.png`;
       const form = new FormData();
-        form.append('file', blob, filename); 
-        // Aliases para compatibilidade com diferentes backends
-        form.append('image', blob, filename);
-        form.append('imagem', blob, filename);
-        form.append('fileImage', blob, filename);
-        form.append('picture', blob, filename);
-        form.append('urlImage', filename);
+      form.append('file', blob, filename);
+      // Aliases para compatibilidade com diferentes backends
+      form.append('image', blob, filename);
+      form.append('imagem', blob, filename);
+      form.append('fileImage', blob, filename);
+      form.append('picture', blob, filename);
+      form.append('urlImage', filename);
+      // Envia campos textuais esperados pelo backend (inclui nome/nomept)
+      form.append('name', (menuItem as any).nome || (menuItem as any).name || '');
+      form.append('nome', (menuItem as any).nome || (menuItem as any).name || '');
       form.append('price', String(priceNum));
       form.append('category', menuItem.categoria || '');
       form.append('description', menuItem.descricao || '');
       if (menuItem.tag) form.append('tag', menuItem.tag);
 
-      // Envia via fetch para evitar problemas de Content-Type com Angular
-      // Monta corpo multipart manualmente para controlar exatamente o Content-Type
-      const boundary = '----WebKitFormBoundary' + Math.random().toString(36).slice(2, 12);
-      const multipartBody = this.buildMultipartBody(form, boundary);
-      const fetchPromise = fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          // Define exatamente sem charset
-          'Content-Type': `multipart/form-data; boundary=${boundary}`
-        },
-        body: multipartBody
-      }).then(async res => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw { status: res.status, error: text };
-        }
-        const json = await res.json();
-        return this.mapDishToMenuItem(json);
-      });
-
-      return from(fetchPromise);
+      // Use HttpClient with FormData so the browser sets the Content-Type/boundary correctly.
+      return this.http.post<any>(API_URL, form).pipe(
+        map(json => this.mapDishToMenuItem(json))
+      );
     }
 
     // Caso normal: enviar JSON
@@ -204,36 +224,25 @@ export class DishService {
       const blob = this.dataURLtoBlob(urlImageValue);
       const filename = `${(menuItem.nome || 'upload').replace(/\s+/g, '_')}.png`;
       const form = new FormData();
-        form.append('file', blob, filename); 
-        // Aliases para compatibilidade com diferentes backends
-        form.append('image', blob, filename);
-        form.append('imagem', blob, filename);
-        form.append('fileImage', blob, filename);
-        form.append('picture', blob, filename);
-        form.append('urlImage', filename);
+      form.append('file', blob, filename);
+      // Aliases para compatibilidade com diferentes backends
+      form.append('image', blob, filename);
+      form.append('imagem', blob, filename);
+      form.append('fileImage', blob, filename);
+      form.append('picture', blob, filename);
+      form.append('urlImage', filename);
+      // Envia campos textuais esperados pelo backend (inclui nome/nomept)
+      form.append('name', (menuItem as any).nome || (menuItem as any).name || '');
+      form.append('nome', (menuItem as any).nome || (menuItem as any).name || '');
       form.append('price', String(priceNum));
       form.append('category', menuItem.categoria || '');
       form.append('description', menuItem.descricao || '');
       if (menuItem.tag) form.append('tag', menuItem.tag);
 
-      const boundary = '----WebKitFormBoundary' + Math.random().toString(36).slice(2, 12);
-      const multipartBody = this.buildMultipartBody(form, boundary);
-      const fetchPromise = fetch(`${API_URL}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': `multipart/form-data; boundary=${boundary}`
-        },
-        body: multipartBody
-      }).then(async res => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw { status: res.status, error: text };
-        }
-        const json = await res.json();
-        return this.mapDishToMenuItem(json);
-      });
-
-      return from(fetchPromise);
+      // Use HttpClient put with FormData so browser sets Content-Type/boundary correctly
+      return this.http.put<any>(`${API_URL}/${id}`, form).pipe(
+        map(json => this.mapDishToMenuItem(json))
+      );
     }
 
     const dishToSend: Dish = this.mapMenuItemToDish(menuItem);

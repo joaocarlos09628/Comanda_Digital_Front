@@ -174,13 +174,12 @@ export class OverviewComponent implements OnInit {
   // onItemAdded: Executado quando um novo item é adicionado via modal
   // Chama o Back-end para criar o item
   onItemAdded(newItem: MenuItem): void {
-    // Log para depuração do payload recebido do modal
-    console.log('[Overview] onItemAdded payload:', newItem);
+    // payload recebido do modal
 
     // [MODIFICADO] Chamada ao Back-end (POST)
     this.dishService.create(newItem).subscribe({
         next: (createdDish) => {
-            console.log('[Overview] createdDish:', createdDish);
+            // createdDish retornado
             this.menuItems.unshift(createdDish); // Adiciona o item retornado com ID
             this.closeModal(); 
         },

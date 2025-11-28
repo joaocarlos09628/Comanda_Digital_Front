@@ -19,6 +19,9 @@ export class ClientePerfilComponent {
   // indica se o CPF veio do backend e não pode ser alterado
   cpfLocked = false;
   originalCpf?: string;
+  // local helper to show a small inline notification when user clicks help link
+  showCepNote = false;
+  cepNoteMessage = '';
 
   constructor(private clientService: ClientService, private router: Router) {
     // tenta carregar o cliente atual. Ajusta campos para o nosso formulário.
@@ -42,7 +45,7 @@ export class ClientePerfilComponent {
           endereco: this.model.endereco || (c as any).endereco,
           numero: this.model.numero || (c as any).numero,
           cep: this.model.cep || (c as any).cep,
-          salvarComo: c.salvarComo || (c as any).saveAs || (c as any).alias,
+          salvarComo: c.salvarComo || (c as any).saveAs || (c as any).alias || (c as any).complement,
           address: addr,
           addressNumber: (c as any).addressNumber
         } as ClientDTO;
@@ -53,6 +56,14 @@ export class ClientePerfilComponent {
       },
       error: () => { /* ignora, formulário vazio */ }
     });
+  }
+
+  notifyUnknownCep(ev?: Event) {
+    if (ev) ev.preventDefault();
+    this.cepNoteMessage = 'Eu também não sei seu CEP';
+    this.showCepNote = true;
+    // esconder após 2.5s, similar ao toast
+    setTimeout(() => this.showCepNote = false, 2500);
   }
 
   salvar() {
@@ -67,16 +78,19 @@ export class ClientePerfilComponent {
     this.saving = true;
 
     // Montar payload compatível com backend: incluir address (obj) e addressNumber
+    const rawCpf = this.unmaskCpf(String(this.model.cpf || ''));
+    const cpfNumber = rawCpf ? Number(rawCpf) : null;
     const payload: any = {
-      // Sempre envie o CPF que está no campo (sem máscara).
-      cpf: this.unmaskCpf(String(this.model.cpf || '')),
+      // Sempre envie o CPF que está no campo (sem máscara). Enviamos como number
+      cpf: cpfNumber,
       name: this.model.name,
       midName: this.model.midName,
       salvarComo: this.model.salvarComo
     };
 
     // Inclui id se existir (ajuda backend a atualizar o registro em vez de criar outro)
-    if (this.model.id) {
+    // teste explícito contra null/undefined para aceitar id === 0 quando aplicável
+    if (this.model.id !== undefined && this.model.id !== null) {
       payload.id = this.model.id;
     } else {
       // tenta recuperar id salvo localmente (se o app já tiver guardado o cliente no localStorage)
@@ -100,6 +114,8 @@ export class ClientePerfilComponent {
     if (this.model.salvarComo) {
       payload.saveAs = this.model.salvarComo;
       payload.alias = this.model.salvarComo;
+      // backend agora tem campo 'complement' no model Client — envie também
+      payload.complement = this.model.salvarComo;
     }
 
     // Aliases para nomes — alguns backends esperam snake_case ou outros campos
@@ -127,13 +143,34 @@ export class ClientePerfilComponent {
       payload.addressNumber = this.model.numero;
     }
 
-    console.log('Salvar cliente payload:', payload);
+    // payload do cliente preparado para envio
     this.clientService.saveOrUpdate(payload).subscribe({
       next: (res) => {
         this.saving = false;
-        // O backend usa 'cpf' como identificador; use cpf como clientId
-        // Não gravar em localStorage: dados do cliente devem ser persistidos no backend apenas.
-        // Se o frontend precisar de cache, que seja opcional e não obrigatório. Aqui não armazenamos.
+        // Atualiza o model com o retorno do servidor para refletir valores reais salvos
+        try {
+          if (res) {
+            this.model.id = (res as any).id ?? this.model.id;
+            const respCpf = (res as any).cpf ?? (res as any).CPF ?? null;
+            this.model.cpf = respCpf ? this.formatCpf(String(respCpf)) : this.model.cpf;
+            this.model.name = (res as any).name ?? this.model.name;
+            this.model.midName = (res as any).midName ?? this.model.midName;
+            this.model.salvarComo = (res as any).salvarComo || (res as any).saveAs || (res as any).alias || (res as any).complement || this.model.salvarComo;
+            // se o servidor retornar endereços, atualiza também
+            const addr = (res as any).address || (res as any).addressDTO || null;
+            if (addr) {
+              this.foundAddress = addr;
+              this.model.endereco = [addr.logradouro, addr.bairro, addr.localidade, addr.uf].filter(Boolean).join(', ');
+              this.model.cep = this.formatCep(String(addr.cep || this.model.cep || ''));
+              this.model.numero = (res as any).addressNumber ?? this.model.numero;
+            }
+          }
+        } catch (e) {
+          console.warn('Erro ao aplicar resposta do servidor no model', e);
+        }
+        // Assegura que o campo CPF esteja desbloqueado para edição (se o usuário quiser alterar)
+        this.cpfLocked = false;
+        // Navega para a tela principal do cliente (comportamento anterior)
         this.router.navigate(['/cliente']);
       },
       error: (err) => {
@@ -175,7 +212,7 @@ export class ClientePerfilComponent {
     const raw = input.value || '';
     const digits = (raw || '').replace(/\D/g, '').slice(0, 11);
     const formatted = this.formatCpf(digits);
-    console.log('onCpfInput raw=', raw, 'digits=', digits, 'formatted=', formatted);
+    // formatação aplicada em tempo real (sem logs)
     this.model.cpf = formatted;
   }
 
@@ -214,7 +251,6 @@ export class ClientePerfilComponent {
     try {
       const digits = String(this.model.cpf || '').replace(/\D/g, '').slice(0, 11);
       this.model.cpf = this.formatCpf(digits);
-      console.log('onCpfBlur -> formatted cpf=', this.model.cpf);
     } catch (e) {
       console.warn('onCpfBlur error', e);
     }

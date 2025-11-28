@@ -20,7 +20,7 @@ export class CheckoutComponent implements OnInit {
   constructor(private carrinho: CarrinhoService, private router: Router, private clientService: ClientService) {}
 
   ngOnInit(): void {
-    console.log('CheckoutComponent: ngOnInit');
+    // ngOnInit inicializado
     this.recalc();
     // opcional: ouvir mudanças no carrinho
     this.carrinho.itemsChanged$.subscribe(() => this.recalc());
@@ -59,7 +59,7 @@ export class CheckoutComponent implements OnInit {
 
   finalizarPedido() {
     // aqui só demonstrativo — o backend será integrado depois
-    console.log('Finalizando pedido — subtotal', this.valorSubtotal, 'shipping', this.shipping, 'endereco', this.endereco);
+    // Finalizar pedido (demo) — sem logs de depuração
     alert('Pedido finalizado (demo)');
     this.router.navigate(['/cliente']);
   }

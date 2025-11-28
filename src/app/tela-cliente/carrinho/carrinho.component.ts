@@ -98,7 +98,6 @@ export class CarrinhoComponent implements OnInit {
       } as CarrinhoItem;
     });
     this.calcularTotais();
-    console.debug('Carrinho sync: stored=', stored, 'mapped=', this.itensCarrinho, 'valorTotal=', this.valorTotal);
   }
 
   private toNumberPrice(v: any): number {
@@ -117,7 +116,7 @@ export class CarrinhoComponent implements OnInit {
       item.subtotal = this.toNumberPrice(item.preco) * (item.quantidade || 0);
       return acc + (item.subtotal || 0);
     }, 0);
-    console.debug('calcularTotais -> valorTotal=', this.valorTotal, 'itens=', this.itensCarrinho.map(i=>({id:i.id,quant:i.quantidade,subtotal:i.subtotal}))); 
+    // cálculo finalizado (logs de depuração removidos em limpeza)
   }
 
   atualizarQuantidade(item: CarrinhoItem, delta: number): void {
@@ -128,7 +127,6 @@ export class CarrinhoComponent implements OnInit {
     }
     const nova = Math.max(0, (item.quantidade || 0) + delta);
     // atualizar no serviço e sincronizar
-    console.debug('atualizarQuantidade -> item', item, 'delta', delta, 'nova', nova);
     this.carrinhoService.atualizarQuantidade(item, nova);
     // sincroniza novamente para refletir mudança
     this.syncFromService();
@@ -159,7 +157,7 @@ export class CarrinhoComponent implements OnInit {
     // Antes o botão navegava para a tela de checkout.
     // Agora integramos o checkout na própria tela do carrinho: rolar/abrir a seção de checkout.
     // Como já mostramos os cards na página, apenas focamos o footer (UX leve).
-    console.log('Botão continuar/finalizar clicado. itens=', this.itensCarrinho.length, 'valor=', this.valorTotal);
+    // Ação de continuar/finalizar acionada (sem logs de depuração)
   }
 
   finalizarPedido(): void {
@@ -255,17 +253,11 @@ export class CarrinhoComponent implements OnInit {
     if ('status' in payload && (payload.status === null || payload.status === undefined)) delete payload.status;
     // Garante que dish.id existam como valores primitivos (não NaN)
     payload.items = payload.items.map((it: any) => ({ ...it, dish: { id: it?.dish?.id } }));
-    console.debug('Enviando payload de pedido:', payload);
-    // DEBUG: mostrar o payload em um alert para captura rápida (remover depois)
-    try {
-      alert(JSON.stringify(payload, null, 2));
-    } catch (e) {
-      console.debug('Falha ao alertar payload, imprimindo no console', payload);
-    }
+    // payload pronto para envio (logs de depuração removidos)
     // continua com o envio (alert é só para inspeção rápida)
     this.orderService.create(payload).subscribe({
       next: (res) => {
-        console.log('Pedido criado com sucesso', res);
+        // pedido criado com sucesso
         this.savingOrder = false;
         this.carrinhoService.clear();
         this.syncFromService();

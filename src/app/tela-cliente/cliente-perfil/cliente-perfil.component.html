@@ -22,7 +22,7 @@
           <input name="cpf" type="text" [(ngModel)]="model.cpf" required
             placeholder="000.000.000-00"
             inputmode="numeric" maxlength="14"
-            [readonly]="cpfLocked" [title]="cpfLocked ? 'CPF bloqueado (clique no cadeado para desbloquear)' : ''"
+            [attr.readonly]="cpfLocked ? '' : null" [title]="cpfLocked ? 'CPF bloqueado (clique no cadeado para desbloquear)' : ''"
             (focus)="onCpfFocus($event)" (input)="onCpfInput($event)" (keydown)="onCpfKeyDown($event)" (blur)="onCpfBlur()" />
           <button type="button" class="cpf-toggle" (click)="toggleCpfLock()" [attr.aria-pressed]="cpfLocked" title="Bloquear/Desbloquear CPF">{{ cpfLocked ? '🔒' : '🔓' }}</button>
         </div>
@@ -31,6 +31,9 @@
         <label>CEP</label>
         <input name="cep" type="text" [(ngModel)]="model.cep" (input)="onCepInput($event)" (keydown)="onCepKeyDown($event)" (change)="onCepChange()"
                placeholder="00000-000" inputmode="numeric" maxlength="9" />
+        <div class="cep-help-row">
+          <a class="cep-help" (click)="notifyUnknownCep($event)">Não sei meu CEP</a>
+        </div>
       </div>
     </div>
 
@@ -55,6 +58,9 @@
     <div class="perfil-actions">
       <button type="button" class="btn-cancel" (click)="cancelar()">Cancelar</button>
       <button type="submit" class="btn-save" [disabled]="saving">Enviar</button>
+    </div>
+    <div *ngIf="showCepNote" class="local-toast">
+      <div class="toast-inner">{{ cepNoteMessage }}</div>
     </div>
   </form>
   <!-- debug block removed -->

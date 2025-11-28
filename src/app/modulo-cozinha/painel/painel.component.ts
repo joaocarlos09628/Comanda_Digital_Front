@@ -107,7 +107,7 @@ export class PainelComponent implements OnInit, OnDestroy {
   
   // Método executado quando clica o botão de ATUALIZAR pedidos
   listenForOrders() { 
-    console.log('Atualizando pedidos...');
+    // Atualizando pedidos (sem logs em produção)
     // Nota: Aqui você pode conectar a uma API real para buscar novos pedidos
   }
 

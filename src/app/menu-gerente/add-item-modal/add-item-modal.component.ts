@@ -56,7 +56,7 @@ export class AddItemModalComponent {
       };
       reader.readAsDataURL(file);
 
-      console.log('Arquivo selecionado:', file.name);
+      // arquivo selecionado (pré-visualização carregada)
     }
 
   }
@@ -156,8 +156,7 @@ export class AddItemModalComponent {
       descricao: this.newItem.descricao,
     };
 
-    // Log para depuração: mostrar o valor numérico que será enviado
-    console.log('[AddItemModal] emitItem', emitItem);
+    // emitindo item para o componente pai
 
     // Envia para o componente pai
     this.itemAdded.emit(emitItem as MenuItem);
