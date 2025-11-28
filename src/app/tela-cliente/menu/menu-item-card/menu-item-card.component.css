@@ -12,4 +12,8 @@
 .menu-card-row{ display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
 .menu-card-price{ color:var(--cor-principal-clara); font-weight:700; }
 .btn-plus{ width:36px; height:36px; border-radius:50%; background:#ECF1E8; border:none; color:#FF6200; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;  font-weight:700; font-size:18px; line-height:1; padding:0; }
-.menu-card-fav{ position:absolute; right:10px; bottom:10px; background:#fff; border-radius:50%; border:1px solid #eee; width:36px; height:36px; cursor:pointer; }
+.menu-card-left{ position:relative }
+.menu-card-left img{ border-radius:8px; display:block }
+.menu-card-fav{ position:absolute; left:8px; bottom:8px; background:#fff; border-radius:999px; border:1px solid #fff; width:44px; height:44px; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.14); z-index:6; display:flex; align-items:center; justify-content:center; }
+.menu-card-fav span{ display:inline-block; width:100%; height:100%; line-height:40px; text-align:center; font-size:18px; color:#d1d1d1 }
+.menu-card-fav span.favorited{ color:#ff5a3c; }

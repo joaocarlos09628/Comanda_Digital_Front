@@ -7,6 +7,7 @@ import { ClientService } from '../../../services/client.service';
 import { MenuItem } from '../../menu-gerente/overview/overview.component';
 import { CarrinhoService } from '../../tela-cliente/carrinho.service';
 import { Router } from '@angular/router';
+import { FavoritesService } from '../../services/favorites.service';
 
 @Component({
   selector: 'app-home',
@@ -26,7 +27,7 @@ export class HomeComponent implements OnInit {
   addressLine1 = '';
   addressLine2 = '';
 
-  constructor(private dishService: DishService, private carrinho: CarrinhoService, private router: Router, private clientService: ClientService) {}
+  constructor(private dishService: DishService, private carrinho: CarrinhoService, private router: Router, private clientService: ClientService, private favs: FavoritesService) {}
 
   get cartCount(): number {
     return this.carrinho.listar().length;
@@ -115,5 +116,14 @@ export class HomeComponent implements OnInit {
 
   addToCart(item: MenuItem) {
     this.carrinho.adicionar({ ...item, quantidade: 1 });
+  }
+
+  isFavorite(item: MenuItem) {
+    return this.favs.isFavorite(item?.id);
+  }
+
+  toggleFavorite(item: MenuItem, ev?: Event) {
+    if (ev) ev.stopPropagation();
+    this.favs.toggle(item);
   }
 }

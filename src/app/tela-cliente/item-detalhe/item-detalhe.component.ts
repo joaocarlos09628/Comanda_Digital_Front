@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { DishService } from '../../../services/dish.service';
 import { CarrinhoService } from '../carrinho.service';
+import { FavoritesService } from '../../services/favorites.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-item-detalhe',
@@ -12,15 +14,18 @@ import { CarrinhoService } from '../carrinho.service';
   templateUrl: './item-detalhe.component.html',
   styleUrls: ['./item-detalhe.component.css']
 })
-export class ItemDetalheComponent implements OnInit {
+export class ItemDetalheComponent implements OnInit, OnDestroy {
   dish: any = null;
   displayPreco = '';
+
+  private favSub?: Subscription;
 
   constructor(
     private route: ActivatedRoute,
     private location: Location,
     private dishService: DishService,
-    private carrinho: CarrinhoService
+    private carrinho: CarrinhoService,
+    private favs: FavoritesService
   ) {}
 
   ngOnInit(): void {
@@ -91,6 +96,15 @@ export class ItemDetalheComponent implements OnInit {
       this.displayPreco = '';
       return;
     }
+    // normaliza propriedade de imagem para usos futuros
+    this.dish.UrlImage = this.dish.UrlImage || this.dish.img || this.dish.image || this.dish.url || this.dish.Url || '';
+    // atualiza estado do favorito para este item
+    this.isFavorite = this.favs.isFavorite(this.dish?.id);
+    // subscreve mudanças globais de favoritos para manter o detalhe em sincronia
+    if (this.favSub) this.favSub.unsubscribe();
+    this.favSub = this.favs.changed$.subscribe(() => {
+      this.isFavorite = this.favs.isFavorite(this.dish?.id);
+    });
     const raw = d.preco ?? d.price ?? d.precoStr ?? d.precoFormatado;
     // Guarda o preço unitário numérico para cálculo de total ao alterar quantidade
     this.unitPriceNumber = this.parsePriceToNumber(raw);
@@ -147,10 +161,18 @@ export class ItemDetalheComponent implements OnInit {
     this.quantidade = next;
   }
 
-  toggleFavorite() { this.isFavorite = !this.isFavorite; }
+  toggleFavorite() {
+    if (!this.dish) return;
+    this.favs.toggle(this.dish);
+    this.isFavorite = this.favs.isFavorite(this.dish?.id);
+  }
 
   addToCart() {
     if (!this.dish) return;
     this.carrinho.adicionar({ ...this.dish, quantidade: this.quantidade });
+  }
+
+  ngOnDestroy(): void {
+    if (this.favSub) this.favSub.unsubscribe();
   }
 }

@@ -1,6 +1,28 @@
 <div class="historico-root">
-	<h2>Histórico / Favoritos</h2>
-	<p>Lista de favoritos / pedidos recentes (placeholder)</p>
+	<div class="tabs">
+		<button [class.active]="tab==='favoritos'" (click)="tab='favoritos'">Favoritos</button>
+		<button [class.active]="tab==='historico'" (click)="tab='historico'">Histórico</button>
+	</div>
+
+	<div *ngIf="tab==='favoritos'">
+		<div *ngIf="favoritos.length === 0">Nenhum favorito ainda.</div>
+		<div class="fav-list">
+			<div *ngFor="let f of favoritos" class="fav-row" (click)="abrirDetalhe(f)">
+				<img [src]="f.img || f.UrlImage || f.url || f.image || 'https://placehold.co/80x60'" alt="{{f.nome}}" />
+				<div class="meta">
+					<div class="title">{{ f.nome }}</div>
+					<div class="price">{{ displayPrice(f) }}</div>
+				</div>
+				<button class="fav-toggle" title="Favorito" (click)="toggleFav(f); $event.stopPropagation()">
+					<span class="heart">♥</span>
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<div *ngIf="tab==='historico'">
+		<div>Sem pedidos no Histórico</div>
+	</div>
 
 	<!-- bottom nav -->
 	<nav class="bottom-nav">

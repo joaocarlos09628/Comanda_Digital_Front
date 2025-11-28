@@ -16,10 +16,14 @@
   </div>
 
   <div class="banner">
-	<div class="banner-inner">
-	  <div class="banner-text">Leve 2<br/>Ganhe 1</div>
-	  <button class="btn-primary">Ir agora</button>
-	</div>
+  <div class="banner-inner banner-hero" role="region" aria-label="Promoção">
+    <div class="banner-text">
+    <div class="banner-title">Leve 2</div>
+    <div class="banner-sub">Ganhe 1</div>
+    </div>
+    <!-- decoração gráfica sutil à direita (sem imagem funcional) -->
+    <div class="banner-deco" aria-hidden></div>
+  </div>
   </div>
 
   <div class="categories">
@@ -27,16 +31,21 @@
   </div>
 
   <section class="products-grid">
-	<div *ngFor="let p of filtered" class="card">
-	  <a [routerLink]="['/item-detalhe', p.id]">
-		<img [src]="p.UrlImage || 'https://placehold.co/300x200'" alt="{{p.nome}}" />
-	  </a>
-	  <div class="card-body">
-		<div class="card-title">{{p.nome}}</div>
-		<div class="card-price">{{p.preco}}</div>
-	  </div>
-	  <button class="add-btn" (click)="addToCart(p)">+</button>
-	</div>
+    <div *ngFor="let p of filtered" class="card">
+      <div class="card-image">
+        <a [routerLink]="['/item-detalhe', p.id]">
+          <img [src]="p.UrlImage || 'https://placehold.co/300x200'" alt="{{p.nome}}" />
+        </a>
+        <button class="card-fav" (click)="toggleFavorite(p, $event)" title="Favoritar">
+          <span [class.fav]="isFavorite(p)">{{ isFavorite(p) ? '♥' : '♡' }}</span>
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="card-title">{{p.nome}}</div>
+        <div class="card-price">{{p.preco}}</div>
+      </div>
+      <button class="add-btn" (click)="addToCart(p)">+</button>
+    </div>
   </section>
 
   <nav class="bottom-nav">
@@ -78,13 +87,24 @@
   .addr-line2{ font-size:13px; color:#666; margin-top:2px }
   .search-area input { width:100%; padding:10px 12px; border-radius:999px; border:1px solid #e6e6e6 }
   .banner { margin:12px 0 }
-  .banner-inner{ background:linear-gradient(90deg,#ff8c00,#ff5a3c); color:#fff; padding:18px; border-radius:18px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 8px 20px rgba(255,140,0,0.12) }
+  .banner-inner{ background:linear-gradient(90deg,#ff8c00,#ff5a3c); color:#fff; padding:12px 12px; border-radius:14px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 6px 18px rgba(255,140,0,0.12); overflow:hidden }
+  .banner-hero{ min-height:72px }
+  .banner-text{ display:flex; flex-direction:column; gap:2px }
+  .banner-title{ font-size:16px; font-weight:800; line-height:1; letter-spacing:0.2px }
+  .banner-sub{ font-size:16px; font-weight:800; line-height:1 }
+  .banner-deco{ width:72px; height:72px; border-radius:999px; background:rgba(255,255,255,0.06); transform:translateX(10px) translateY(-8px); box-shadow: inset -12px -6px 24px rgba(255,255,255,0.03) }
+  @media(min-width:420px){ .banner-hero{ min-height:88px } }
   .categories { display:flex; gap:8px; overflow:auto; padding:8px 0; justify-content:center; flex-wrap:wrap }
   .categories button{ padding:8px 12px; border-radius:999px; border:1px solid #e9ece8; background:#fff; color:#6b6b6b; font-weight:600; white-space:nowrap }
   .categories button.active { background:#111; color:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.06) }
   @media(max-width:420px){ .categories{ gap:8px; padding:6px 6px } }
   .products-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:12px }
   .card{ background:#fff; border-radius:10px; padding:8px; position:relative; box-shadow:0 4px 12px rgba(0,0,0,0.06) }
+  .card-image{ position:relative }
+  .card-image img{ border-radius:8px; display:block }
+  .card-fav{ position:absolute; left:12px; bottom:12px; width:44px; height:44px; border-radius:999px; background:#fff; border:1px solid #fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.14); z-index:6 }
+  .card-fav span{ color:#ffbdb0; font-size:20px; line-height:1; display:block }
+  .card-fav span.fav{ color:#ff5a3c }
   .card img{ width:100%; height:120px; object-fit:cover; border-radius:8px }
   .card-body{ padding-top:8px }
   .card-title{ font-weight:600; font-size:14px }
