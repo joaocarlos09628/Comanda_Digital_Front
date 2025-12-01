@@ -29,8 +29,8 @@
       </div>
       <div class="col-6">
         <label>CEP</label>
-        <input name="cep" type="text" [(ngModel)]="model.cep" (input)="onCepInput($event)" (keydown)="onCepKeyDown($event)" (change)="onCepChange()"
-               placeholder="00000-000" inputmode="numeric" maxlength="9" />
+         <input name="cep" type="text" [(ngModel)]="model.cep" (input)="onCepInput($event)" (keydown)="onCepKeyDown($event)" (change)="onCepChange()" (blur)="onCepBlur()"
+           placeholder="00000-000" inputmode="numeric" maxlength="9" />
         <div class="cep-help-row">
           <a class="cep-help" (click)="notifyUnknownCep($event)">Não sei meu CEP</a>
         </div>

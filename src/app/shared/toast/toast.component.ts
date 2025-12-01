@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription, timer } from 'rxjs';
-import { CarrinhoService } from '../../tela-cliente/carrinho.service';
+import { CarrinhoService } from '../../../services/carrinho.service';
 
 @Component({
   selector: 'app-toast',
@@ -17,7 +17,8 @@ export class ToastComponent implements OnDestroy {
 
   constructor(private carrinho: CarrinhoService) {
     this.sub = this.carrinho.itemAdded$.subscribe(item => {
-      this.show(`${item.nome || item.name || 'Item'} adicionado ao carrinho`);
+      this.show(`${item['nome'] || item['name'] || 'Item'} adicionado ao carrinho`);
+
     });
   }
 

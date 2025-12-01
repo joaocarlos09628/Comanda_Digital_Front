@@ -1,0 +1,45 @@
+<!-- Motoboy Screen dinamizado -->
+<motoboy-header></motoboy-header>
+
+<main class="mf-container" role="main">
+
+  <!-- Em rota agora -->
+  <section class="mf-section">
+	<h2 class="mf-title">Em rota agora</h2>
+
+	<div *ngIf="inRouteOrders.length === 0" class="mf-empty">Nenhum pedido em rota</div>
+
+	<div *ngFor="let o of inRouteOrders">
+	  <delivery-card [order]="o" [mode]="'in-route'" (details)="viewDetails($event)"></delivery-card>
+	</div>
+  </section>
+
+  <!-- Pedidos disponíveis -->
+  <section class="mf-section">
+	<h2 class="mf-title">Pedidos disponíveis</h2>
+
+	<div *ngIf="pedidosDisponiveis.length === 0" class="mf-empty">Sem pedidos disponíveis</div>
+
+	<div *ngFor="let p of pedidosDisponiveis">
+	  <delivery-card [order]="p" [mode]="'available'" (accept)="acceptOrder($event)" (details)="viewDetails($event)"></delivery-card>
+	</div>
+  </section>
+
+  <!-- Entregas recentes -->
+  <section class="mf-section">
+	<h2 class="mf-title">Entregas recentes</h2>
+	<delivery-history-list [orders]="entregasRecentes"></delivery-history-list>
+  </section>
+
+  <!-- Modal de detalhes -->
+  <delivery-details *ngIf="selectedOrder" [order]="selectedOrder"
+	(close)="closeDetails()"
+	(start)="startDelivery($event)"
+	(finish)="finishDelivery($event)"
+	(cancel)="openCancel($event)">
+  </delivery-details>
+
+  <cancel-modal [visible]="showCancel" (confirm)="confirmCancel()" (close)="closeCancel()"></cancel-modal>
+
+</main>
+

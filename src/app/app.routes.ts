@@ -24,11 +24,12 @@ export const routes: Routes = [
   },
   
   // Rotas Flutuantes (Assíncronas)
-  { 
-    path: 'motoboy', 
-    loadComponent: () => import('./modulo-cozinha/painel/painel.component').then(m => m.PainelComponent), 
-    title: 'Motoboy | Rota' 
-  },
+	{ 
+		path: 'motoboy', 
+		loadComponent: () => import('./motoboy/motoboy.component').then(m => m.MotoboyComponent), 
+		title: 'Motoboy | Rota' 
+	},
+        
 	{ 
 		path: 'cliente', 
 		// Rota do cliente: agora carrega o novo HomeComponent como tela inicial.
@@ -64,6 +65,13 @@ export const routes: Routes = [
 		path: 'cliente/pedido/aprovado',
 		loadComponent: () => import('./tela-cliente/pedido-aprovado/pedido-aprovado.component').then(m => m.PedidoAprovadoComponent),
 		title: 'Pedido Aprovado'
+	},
+
+	// Rota: Rastreio de pedido (cliente)
+	{
+		path: 'cliente/rastreio',
+		loadComponent: () => import('./tela-cliente/rastreio/rastreio.component').then(m => m.RastreioComponent),
+		title: 'Rastreio do Pedido'
 	},
 
 	// Perfil do cliente (formulário)

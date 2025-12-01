@@ -1,20 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { CarrinhoService } from '../carrinho.service';
+import { CarrinhoService } from '../../../services/carrinho.service';
 import { OrderService } from '../../../services/order.service';
 import { ClientService } from '../../../services/client.service';
 import { OrderPayload } from '../../../interfaces/order.interface';
+import { forkJoin } from 'rxjs';
 
 // Estrutura simples do item do carrinho usada neste componente
 interface CarrinhoItem {
+  dishId?: number | string;
   id?: number | string;
-  nome: string;
-  descricao?: string;
-  preco: number | string;
-  UrlImage?: string;
-  urlImagem?: string;
-  quantidade: number;
+  name: string;
+  description?: string;
+  price: number;
+  image?: string;
+  quantity: number;
   subtotal?: number;
 }
 
@@ -85,19 +86,25 @@ export class CarrinhoComponent implements OnInit {
   private syncFromService() {
     const stored = this.carrinhoService.listar() || [];
     this.itensCarrinho = stored.map((it: any) => {
-      const precoNum = this.toNumberPrice(it.preco);
-      const quantidade = typeof it.quantidade === 'number' ? it.quantidade : (it.quantidade ? Number(it.quantidade) : 1);
+      const priceNum = this.toNumberPrice(it.price ?? it.preco);
+      const quantity = typeof it.quantity === 'number' ? it.quantity : (it.quantity ? Number(it.quantity) : 1);
       return {
+        dishId: it.dishId ?? it.id,
         id: it.id,
-        nome: it.nome || it.name || '',
-        descricao: it.descricao || it.description || '',
-        preco: precoNum,
-        UrlImage: it.UrlImage || it.urlImage || it.urlImagem || it.image || '',
-        quantidade,
-        subtotal: precoNum * quantidade
+        name: it.name ?? it.nome ?? '',
+        description: it.description ?? it.descricao ?? '',
+        price: priceNum,
+        image: it.image || it.UrlImage || it.urlImage || it.urlImagem || (it.dishId ?? it.id ? `assets/img/pratos/${it.dishId ?? it.id}.png` : ''),
+        quantity,
+        subtotal: priceNum * quantity
       } as CarrinhoItem;
     });
     this.calcularTotais();
+  }
+
+  // Esconde imagem quebrada em vez de exibir ícone de erro
+  onImgError(event: any) {
+    try { event.target.style.display = 'none'; } catch(e) { /* noop */ }
   }
 
   private toNumberPrice(v: any): number {
@@ -113,27 +120,29 @@ export class CarrinhoComponent implements OnInit {
 
   calcularTotais(): void {
     this.valorTotal = this.itensCarrinho.reduce((acc, item) => {
-      item.subtotal = this.toNumberPrice(item.preco) * (item.quantidade || 0);
+      item.subtotal = this.toNumberPrice(item.price) * (item.quantity || 0);
       return acc + (item.subtotal || 0);
     }, 0);
     // cálculo finalizado (logs de depuração removidos em limpeza)
   }
-
   atualizarQuantidade(item: CarrinhoItem, delta: number): void {
-    if (delta < 0 && item.quantidade === 1) {
+    if (!item) return;
+    if (delta < 0 && item.quantity === 1) {
       // se for diminuir quando quantidade=1, remove
       this.removerItem(item);
       return;
     }
-    const nova = Math.max(0, (item.quantidade || 0) + delta);
+    const nova = Math.max(0, (item.quantity || 0) + delta);
     // atualizar no serviço e sincronizar
-    this.carrinhoService.atualizarQuantidade(item, nova);
+    // usamos dishId/id para identificar o item no serviço
+    const identifier = { dishId: item.dishId ?? item.id };
+    this.carrinhoService.atualizarQuantidade(identifier, nova);
     // sincroniza novamente para refletir mudança
     this.syncFromService();
   }
 
   removerItem(item: CarrinhoItem) {
-    this.carrinhoService.remover(item);
+    this.carrinhoService.remover({ dishId: item.dishId ?? item.id });
     this.syncFromService();
   }
 
@@ -171,15 +180,25 @@ export class CarrinhoComponent implements OnInit {
     const clientId = null;
     let storedClient: any = null;
     const itemsPayload = this.itensCarrinho.map(i => ({
-      quantity: Number(i.quantidade) || 1,
-      price: Number(typeof i.preco === 'number' ? i.preco : Number(i.preco)) || 0,
-      dish: { id: Number(i.id) }
+      quantity: Number(i.quantity) || 1,
+      price: Number(typeof i.price === 'number' ? i.price : Number(i.price)) || 0,
+      dishId: Number(i.dishId ?? i.id)
     }));
 
     // Payload enxuto — remove 'moment' e 'status' para evitar incompatibilidades se o backend gerar automaticamente
     const payload: any = {
       items: itemsPayload
     };
+    // Inclui frete/valores no payload para que o backend persista o total corretamente
+    const subtotal = this.valorTotal || itemsPayload.reduce((s:any, it:any) => s + (Number(it.price) || 0) * (Number(it.quantity) || 1), 0);
+    const delivery = Number(this.shipping || 0);
+    const fullTotal = Number(subtotal) + Number(delivery);
+    // Backend pode esperar diferentes nomes; adicionamos aliases comuns
+    payload.total = fullTotal;
+    payload.price = fullTotal;
+    payload.amount = fullTotal;
+    payload.deliveryFee = delivery;
+    payload.shipping = delivery;
     if (clientId) {
       // preserve stored id as-is (could be cpf string or numeric id)
       payload.client = { id: clientId };
@@ -187,17 +206,16 @@ export class CarrinhoComponent implements OnInit {
 
     // Se já temos clientId local, chama direto; caso contrário, tenta obter do backend
     if (storedClient && (storedClient.id !== undefined && storedClient.id !== null || storedClient.cpf)) {
-      // Se temos id (pode ser 0) use direto
-      if (storedClient.id !== undefined && storedClient.id !== null) {
-        payload.client = { id: storedClient.id, cpf: storedClient.cpf };
-        // valida items antes de enviar
-        if (!this.validateItems(payload)) { this.savingOrder = false; return; }
+      // Preferimos enviar o CPF porque o backend busca cliente por CPF.
+      const cleanCpf = (c: any) => String(c?.cpf || '').replace(/[^\d]/g, '');
+      const storedCpf = cleanCpf(storedClient);
+      if (storedCpf && storedCpf.length === 11) {
+        payload.client = { cpf: storedCpf };
         this.sendOrder(payload);
         return;
       }
 
-      // Se só temos CPF, NÃO tente sobrescrever/`saveOrUpdate` com payload parcial
-      // isso pode apagar campos existentes no backend (evita regressão vista em produção).
+      // Se não temos CPF válido, solicitar atualização do perfil
       this.savingOrder = false;
       alert('Precisamos de seus dados completos antes de finalizar o pedido. Atualize seu perfil.');
       this.router.navigate(['/cliente/perfil']);
@@ -207,26 +225,19 @@ export class CarrinhoComponent implements OnInit {
     // If we don't have a cached client, ask backend for the current client and attach it
     this.clientService.getClient().subscribe({
       next: (client) => {
-        if (client && (client.cpf || client.id !== undefined && client.id !== null)) {
-          // se backend já retorna id use direto (aceita id = 0)
-          if (client.id !== undefined && client.id !== null) {
-            payload.client = { id: client.id, cpf: client.cpf };
-            // do not store client in localStorage; backend is the source of truth
-            if (!this.validateItems(payload)) { this.savingOrder = false; return; }
-            this.sendOrder(payload);
-            return;
-          }
+        // O backend busca por CPF. Limpa o CPF (apenas dígitos) e envia somente ele.
+        const cleanCpf = (c: any) => String(c?.cpf || '').replace(/[^\d]/g, '');
+        const cpfString = cleanCpf(client);
 
-          // se só temos cpf no retorno do backend, NÃO tente sobrescrever o registro enviando
-          // apenas {cpf} — isso pode zerar outros campos no banco. Requeira atualização do perfil.
-          this.savingOrder = false;
-          alert('Precisamos de seus dados completos antes de finalizar o pedido. Atualize seu perfil.');
-          this.router.navigate(['/cliente/perfil']);
-        } else {
-          alert('Precisamos de seus dados (CPF) antes de finalizar o pedido.');
-          this.savingOrder = false;
-          this.router.navigate(['/cliente/perfil']);
+        if (cpfString && cpfString.length === 11) {
+          payload.client = { cpf: cpfString };
+          this.sendOrder(payload);
+          return;
         }
+
+        alert('CPF do cliente é inválido ou nulo. Por favor, atualize seu perfil.');
+        this.savingOrder = false;
+        this.router.navigate(['/cliente/perfil']);
       },
       error: (err) => {
         this.savingOrder = false;
@@ -236,9 +247,9 @@ export class CarrinhoComponent implements OnInit {
   }
 
   private sendOrder(payload: any): void {
-    // valida payload.client.id mais uma vez antes de enviar
-    if (!payload || !payload.client || payload.client.id === undefined || payload.client.id === null) {
-      console.error('Tentativa de enviar pedido sem client.id', payload);
+    // valida payload.client.cpf (backend busca por CPF)
+    if (!payload || !payload.client || !payload.client.cpf) {
+      console.error('Tentativa de enviar pedido sem client.cpf', payload);
       this.savingOrder = false;
       alert('Erro interno: cliente inválido. Atualize seu perfil e tente novamente.');
       this.router.navigate(['/cliente/perfil']);
@@ -251,17 +262,46 @@ export class CarrinhoComponent implements OnInit {
     // Remova moment/status se não quisermos forçar o backend
     if ('moment' in payload && (payload.moment === null || payload.moment === undefined)) delete payload.moment;
     if ('status' in payload && (payload.status === null || payload.status === undefined)) delete payload.status;
-    // Garante que dish.id existam como valores primitivos (não NaN)
-    payload.items = payload.items.map((it: any) => ({ ...it, dish: { id: it?.dish?.id } }));
+    // items já estão na forma esperada ({ quantity, price, dishId })
     // payload pronto para envio (logs de depuração removidos)
     // continua com o envio (alert é só para inspeção rápida)
+    // envia payload para criação do pedido
+
+    // 1) Cria rascunho de pedido (DRAFT)
     this.orderService.create(payload).subscribe({
       next: (res) => {
-        // pedido criado com sucesso
-        this.savingOrder = false;
-        this.carrinhoService.clear();
-        this.syncFromService();
-        this.router.navigate(['/cliente/pedido/aprovado'], { state: { order: res } });
+        // resposta do create
+        const orderId = res && (res.id ?? res.orderId ?? res.order_id ?? null);
+        if (!orderId) {
+          this.savingOrder = false;
+          console.error('Create retornou sem order id:', res);
+          alert('Servidor não retornou id do pedido. Verifique servidor.');
+          return;
+        }
+
+        // 2) Adiciona todos os itens via POST /orders/{orderId}/items
+        const itemCalls = this.itensCarrinho.map(it => {
+          const body = { quantity: Number(it.quantity) || 1, price: Number(it.price) || 0, dishId: Number(it.dishId ?? it.id) };
+          return this.orderService.addItem(orderId, body);
+        });
+
+        if (itemCalls.length === 0) {
+          // nenhum item: finaliza direto
+          this.finalizeOrderFlow(orderId, res);
+          return;
+        }
+
+        forkJoin(itemCalls).subscribe({
+          next: (added) => {
+            // 3) Finaliza o pedido
+            this.finalizeOrderFlow(orderId, res);
+          },
+          error: (e) => {
+            console.error('Erro ao adicionar items ao pedido:', e);
+            this.savingOrder = false;
+            alert('Falha ao adicionar itens ao pedido. Tente novamente.');
+          }
+        });
       },
       error: (err) => {
         console.error('Erro criando pedido', err);
@@ -279,31 +319,24 @@ export class CarrinhoComponent implements OnInit {
     });
   }
 
-  // Valida que cada item possui dish.id numérico não-nulo e quantidade/price coerentes
-  private validateItems(payload: any): boolean {
-    if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
-      alert('Carrinho vazio. Adicione itens antes de finalizar o pedido.');
-      return false;
-    }
-    for (let i = 0; i < payload.items.length; i++) {
-      const it = payload.items[i];
-      const dishId = Number(it?.dish?.id);
-      if (!dishId || !isFinite(dishId) || dishId <= 0) {
-        const nome = this.itensCarrinho[i]?.nome || `item ${i + 1}`;
-        alert(`Item inválido no carrinho: "${nome}" sem identificador válido.`);
-        return false;
+  private finalizeOrderFlow(orderId: any, createResponse: any) {
+    this.orderService.finalize(orderId).subscribe({
+      next: (finalOrder) => {
+        this.savingOrder = false;
+        this.carrinhoService.clear();
+        this.syncFromService();
+        // navega com o pedido finalizado recebido do backend
+        // Passa também o valor do frete no state para que a tela de confirmação
+        // e rastreio possam mostrar o total com frete mesmo que o backend não persista.
+        this.router.navigate(['/cliente/pedido/aprovado'], { state: { order: finalOrder, shipping: this.shipping } });
+      },
+      error: (e) => {
+        console.error('Erro ao finalizar pedido:', e);
+        this.savingOrder = false;
+        alert('Falha ao finalizar o pedido. Tente novamente.');
       }
-      const qty = Number(it.quantity || 0);
-      if (!qty || qty <= 0) {
-        alert(`Quantidade inválida para o item ${i + 1}.`);
-        return false;
-      }
-      const price = Number(it.price || 0);
-      if (isNaN(price) || price < 0) {
-        alert(`Preço inválido para o item ${i + 1}.`);
-        return false;
-      }
-    }
-    return true;
+    });
   }
+
+  
 }

@@ -1,1 +1,71 @@
-<p>rastreio works!</p>
+<div class="r-container">
+	<header class="r-header">
+		<h1>Rastreio do pedido</h1>
+		<p class="sub">Acompanhe o andamento da sua entrega em tempo real</p>
+		<div *ngIf="orderNumber" class="order-number">Pedido #{{ orderNumber }}</div>
+		<button class="close-x" title="Fechar" (click)="close()">✕</button>
+	</header>
+
+	<section class="r-status" *ngIf="rastreio; else loading">
+		<div class="r-card card">
+			<div class="r-card-top">
+				<div class="card-left">
+					<!-- espaço para título ou informações resumidas -->
+				</div>
+				<div class="eta-box">Tempo estimado:<div class="eta-val">{{ fixedEtaText }}</div></div>
+			</div>
+
+			<div class="r-steps">
+				<div class="step" *ngFor="let step of steps; let i = index">
+					<div class="marker-wrap">
+						<div class="marker" [class.active]="i <= activeStepIndex()"> 
+							<span *ngIf="i <= activeStepIndex()">✓</span>
+						</div>
+						<div class="connector" *ngIf="i < steps.length - 1" [class.filled]="i < activeStepIndex()"></div>
+					</div>
+					<div class="step-text" [class.current]="i === activeStepIndex()">{{ step.label }}</div>
+				</div>
+			</div>
+
+			<div class="r-address">
+				<div class="addr-left">
+					<svg class="icon-loc" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7z" stroke="#0f172a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					<div>
+						<div class="muted-label">Endereço</div>
+						<div class="addr-value">{{ formattedAddress || '—' }}</div>
+					</div>
+				</div>
+				<div class="actions">
+					<button class="btn-call" (click)="callRider()" [disabled]="!rastreio.riderPhone">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 3.09 4.18 2 2 0 0 1 5 2h3a2 2 0 0 1 2 1.72c.12 1.05.36 2.07.72 3.03a2 2 0 0 1-.45 2.11L9.91 10.09a15.05 15.05 0 0 0 6 6l1.23-1.23a2 2 0 0 1 2.11-.45c.96.36 1.98.6 3.03.72A2 2 0 0 1 22 16.92z" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						Ligar para entregador
+					</button>
+				</div>
+			</div>
+
+			<div class="items-list">
+				<h3>Itens do pedido</h3>
+				<ul>
+						<li class="card" *ngFor="let it of itemsForView()">
+							<img class="item-image" *ngIf="(it.image || it.dishId) ; else placeholder" [src]="it.image || ('assets/img/pratos/' + it.dishId + '.png')" [alt]="it.name" />
+						    <ng-template #placeholder><div class="item-image ph"></div></ng-template>
+						<div class="item-body">
+							<div class="name">{{ it.name }}</div>
+							<div class="meta">x{{ it.quantity }} · {{ it.price | currency:'BRL':'symbol':'1.2-2' }}</div>
+						</div>
+					</li>
+				</ul>
+			</div>
+
+			<div class="r-summary">
+				<div class="last-update" *ngIf="lastUpdateText">Última atualização: {{ lastUpdateText }}</div>
+				<div class="total">Total: <strong>{{ displayTotal | currency:'BRL':'symbol':'1.2-2' }}</strong></div>
+			</div>
+		</div>
+	</section>
+
+	<ng-template #loading>
+		<div class="loading">Carregando status do pedido…</div>
+	</ng-template>
+</div>
+

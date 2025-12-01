@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { DishService } from '../../../services/dish.service';
-import { CarrinhoService } from '../carrinho.service';
-import { FavoritesService } from '../../services/favorites.service';
+import { CarrinhoService } from '../../../services/carrinho.service';
+import { FavoritesService } from '../../../services/favorites.service';
 import { Subscription } from 'rxjs';
 
 @Component({

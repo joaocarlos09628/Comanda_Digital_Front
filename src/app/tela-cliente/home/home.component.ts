@@ -5,9 +5,9 @@ import { RouterModule } from '@angular/router';
 import { DishService } from '../../../services/dish.service';
 import { ClientService } from '../../../services/client.service';
 import { MenuItem } from '../../menu-gerente/overview/overview.component';
-import { CarrinhoService } from '../../tela-cliente/carrinho.service';
+import { CarrinhoService } from '../../../services/carrinho.service';
 import { Router } from '@angular/router';
-import { FavoritesService } from '../../services/favorites.service';
+import { FavoritesService } from '../../../services/favorites.service';
 
 @Component({
   selector: 'app-home',

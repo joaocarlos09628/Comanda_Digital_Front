@@ -40,4 +40,12 @@ export class ClientService {
       });
     });
   }
+
+  // Salva ou atualiza o endereço no backend usando o CEP (POST /address/{cep})
+  saveAddressByCep(cep: string): Observable<any> {
+    const clean = (cep || '').replace(/\D/g, '');
+    if (!clean) throw new Error('CEP inválido');
+    const backendUrl = `http://localhost:8080/address/${clean}`;
+    return this.http.post(backendUrl, {});
+  }
 }

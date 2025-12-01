@@ -281,6 +281,62 @@ export class ClientePerfilComponent {
     });
   }
 
+  // Ao perder foco do campo CEP: converte para apenas dígitos, salva o Address no backend
+  // e, se o cliente já tiver CPF, tenta associar o endereço ao cliente (salvando o client).
+  onCepBlur() {
+    try {
+      const digits = this.unmaskCep(String(this.model.cep || ''));
+      // atualiza o campo para somente dígitos (conforme solicitado)
+      this.model.cep = digits;
+      if (!digits || digits.length < 8) return;
+
+      // chama POST /address/{cep} para salvar/atualizar o address no backend
+      this.clientService.saveAddressByCep(digits).subscribe({
+        next: (addr: any) => {
+          // atualiza view com endereço retornado
+          this.foundAddress = addr;
+          const parts: string[] = [];
+          if (addr.logradouro) parts.push(addr.logradouro);
+          if (addr.bairro) parts.push(addr.bairro);
+          if (addr.localidade) parts.push(addr.localidade);
+          if (addr.uf) parts.push(addr.uf);
+          this.model.endereco = parts.join(', ');
+
+          // Se já temos CPF no form, atualiza o cliente para associar o address
+          if (this.model.cpf) {
+            const payload: any = {};
+            const rawCpf = this.unmaskCpf(String(this.model.cpf || ''));
+            payload.cpf = rawCpf ? Number(rawCpf) : null;
+            if (this.model.id !== undefined && this.model.id !== null) payload.id = this.model.id;
+            payload.address = addr;
+            payload.addressNumber = this.model.numero;
+            // salva cliente com o novo address (não interfere nos outros campos)
+            this.clientService.saveOrUpdate(payload).subscribe({
+              next: (res) => {
+                // atualiza model com resposta do servidor se houver
+                try {
+                  const addrResp = (res as any).address || (res as any).addressDTO || null;
+                  if (addrResp) {
+                    this.foundAddress = addrResp;
+                    this.model.endereco = [addrResp.logradouro, addrResp.bairro, addrResp.localidade, addrResp.uf].filter(Boolean).join(', ');
+                    this.model.cep = String(addrResp.cep || digits);
+                    this.model.numero = (res as any).addressNumber ?? this.model.numero;
+                  }
+                } catch (e) { /* ignore */ }
+              },
+              error: (err) => { console.warn('Falha ao associar address ao cliente', err); }
+            });
+          }
+        },
+        error: (e) => {
+          console.warn('Falha ao salvar address via CEP', e);
+        }
+      });
+    } catch (e) {
+      console.warn('onCepBlur error', e);
+    }
+  }
+
   // Formata CEP como 00000-000 a partir de dígitos
   private formatCep(digits: string): string {
     const d = (digits || '').toString().replace(/\D/g, '').slice(0, 8);

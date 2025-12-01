@@ -6,6 +6,7 @@ import { NgIf, NgFor, NgClass, DatePipe } from '@angular/common';
 
 // Importações do CDK Drag & Drop para permitir arrastar e soltar cards entre colunas
 import { CdkDragDrop, moveItemInArray, transferArrayItem, CdkDrag, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop'; 
+import { OrderService } from '../../../services/order.service';
 
 
 
@@ -24,6 +25,8 @@ export interface Order {
   status: 'A PREPARAR' | 'EM PREPARO' | 'PRONTO' | 'ENTREGUE';  // Estado atual do pedido
   items: OrderItem[];                                   // Lista de itens do pedido
   timestamp: Date;                                      // Data/hora de criação do pedido
+  receivedAt?: Date;                                    // quando o pedido foi marcado como RECEIVED
+  deliveredAt?: Date;                                   // quando o pedido foi marcado como DELIVERED
   justUpdated?: boolean;                                // Flag para animar quando o status muda
 }
 
@@ -54,28 +57,13 @@ export class PainelComponent implements OnInit, OnDestroy {
   // ========== COLUNAS DO KANBAN - Listas de pedidos por status ==========
   // Cada sinal armazena um array de pedidos em cada etapa do fluxo
   
-  // Sinal para pedidos que ainda não foram iniciados
-  toPrepare = signal<Order[]>([
-    { id: '1', orderId: 100, table: '', status: 'A PREPARAR', items: [{name: 'Pizza Margherita', qty: 1}, {name: 'Batata Frita', qty: 1}], timestamp: new Date(Date.now() - 5 * 60 * 1000) },
-    { id: '2', orderId: 101, table: '', status: 'A PREPARAR', items: [{name: 'Refrigerante 600ml', qty: 2}, {name: 'Pizza Pepperoni', qty: 1}], timestamp: new Date(Date.now() - 3 * 60 * 1000) }
-  ]);
-  
-  // Sinal para pedidos que estão sendo preparados
-  inProgress = signal<Order[]>([
-    { id: '3', orderId: 98, table: '', status: 'EM PREPARO', items: [{name: 'Pizza Quatro Queijos', qty: 1}], timestamp: new Date(Date.now() - 9 * 60 * 1000) }
-  ]);
-  
-  // Sinal para pedidos que já foram finalizados
-  ready = signal<Order[]>([
-    { id: '4', orderId: 97, table: '', status: 'PRONTO', items: [{name: 'Pizza Chocolate', qty: 1}], timestamp: new Date(Date.now() - 15 * 60 * 1000) }
-  ]);
-  
-  // Sinal para pedidos que já foram entregues
-  delivered = signal<Order[]>([
-    { id: '5', orderId: 96, table: '', status: 'ENTREGUE', items: [{name: 'Refrigerante 2L', qty: 1}], timestamp: new Date(Date.now() - 20 * 60 * 1000) }
-  ]);
+  // Sinais iniciados vazios — iremos popular com dados reais do backend
+  toPrepare = signal<Order[]>([]);
+  inProgress = signal<Order[]>([]);
+  ready = signal<Order[]>([]);
+  delivered = signal<Order[]>([]);
 
-  constructor() {}
+  constructor(private orderService: OrderService) {}
   
   // ========== PROPRIEDADES AUXILIARES ==========
   
@@ -92,6 +80,95 @@ export class PainelComponent implements OnInit, OnDestroy {
     this.updateIntervalId = setInterval(() => {
       this.currentDateTime.set(new Date());
     }, 1000);
+
+    // Carrega pedidos reais ao inicializar
+    this.loadOrders();
+  }
+
+  // Atualiza / Recarrega pedidos (botão 'refresh')
+  listenForOrders() {
+    this.loadOrders();
+  }
+
+  // Carrega todos os pedidos do backend e popula as colunas
+  loadOrders(): void {
+    this.orderService.findAll().subscribe({
+      next: (orders: any[]) => {
+        if (!Array.isArray(orders)) return;
+        // Filtra pedidos não DRAFT
+        const real = orders.filter(o => {
+          const st = (o.status || o.state || '').toString().toUpperCase();
+          return st !== 'DRAFT';
+        });
+
+        // Mapeia e ordena por data de criação (mais antigos primeiro)
+        const mapped = real.map(o => this.mapBackendOrder(o))
+                           .sort((a, b) => (a.timestamp?.getTime() || 0) - (b.timestamp?.getTime() || 0));
+
+        // Limpa listas e popula com os itens mapeados
+        const toPrepareArr: Order[] = [];
+        const inProgressArr: Order[] = [];
+        const readyArr: Order[] = [];
+        const deliveredArr: Order[] = [];
+
+        for (const o of mapped) {
+          switch (o.status) {
+            case 'A PREPARAR': toPrepareArr.push(o); break;
+            case 'EM PREPARO': inProgressArr.push(o); break;
+            case 'PRONTO': readyArr.push(o); break;
+            case 'ENTREGUE': deliveredArr.push(o); break;
+            default: break;
+          }
+        }
+
+        this.toPrepare.set(toPrepareArr);
+        this.inProgress.set(inProgressArr);
+        this.ready.set(readyArr);
+        this.delivered.set(deliveredArr);
+      },
+      error: (err) => {
+        console.error('Erro ao carregar pedidos:', err);
+      }
+    });
+  }
+
+  // Mapeia um objeto de pedido do backend para a interface local Order
+  private mapBackendOrder(o: any): Order {
+    const id = o.id ?? o.orderId ?? String(o.id ?? Math.random());
+    const orderId = o.orderNumber ?? o.orderId ?? (typeof o.id === 'number' ? o.id : NaN);
+    const table = o.table ?? o.tableNumber ?? '';
+    // Determina timestamp a partir de propriedades comuns
+    const tsRaw = o.moment ?? o.createdAt ?? o.timestamp ?? o.created ?? o.dateTime;
+    const timestamp = tsRaw ? new Date(tsRaw) : new Date();
+    // Mapeia status backend para labels em português usados pela UI
+    const backendStatus = (o.status || '').toString().toUpperCase();
+    let statusLabel: Order['status'] = 'A PREPARAR';
+    if (backendStatus === 'RECEIVED') statusLabel = 'A PREPARAR';
+    else if (backendStatus === 'IN_PREPARATION') statusLabel = 'EM PREPARO';
+    else if (backendStatus === 'READY') statusLabel = 'PRONTO';
+    else if (backendStatus === 'DELIVERED') statusLabel = 'ENTREGUE';
+
+    const items: OrderItem[] = (o.items || []).map((it: any) => ({
+      name: it.dish?.name || it.dishName || it.name || it.productName || it.description || 'Item',
+      qty: it.quantity ?? it.qty ?? 1
+    }));
+
+    // tenta extrair timestamps de received/delivered (varia conforme backend)
+    const receivedRaw = o.receivedAt ?? o.receivedTimestamp ?? o.statusTimestamps?.received ?? o.timestamps?.received;
+    const deliveredRaw = o.deliveredAt ?? o.deliveredTimestamp ?? o.statusTimestamps?.delivered ?? o.timestamps?.delivered;
+    const receivedAt = receivedRaw ? new Date(receivedRaw) : undefined;
+    const deliveredAt = deliveredRaw ? new Date(deliveredRaw) : undefined;
+
+    return {
+      id: String(id),
+      orderId: Number(orderId) || 0,
+      table,
+      status: statusLabel,
+      items,
+      timestamp,
+      receivedAt,
+      deliveredAt
+    } as Order;
   }
 
   // ========== LIFECYCLE - ngOnDestroy (quando o componente é destruído) ==========
@@ -106,10 +183,7 @@ export class PainelComponent implements OnInit, OnDestroy {
   // ========== MÉTODOS DE AÇÃO - Handlers de cliques de botão ==========
   
   // Método executado quando clica o botão de ATUALIZAR pedidos
-  listenForOrders() { 
-    // Atualizando pedidos (sem logs em produção)
-    // Nota: Aqui você pode conectar a uma API real para buscar novos pedidos
-  }
+  // (implementado acima para chamar loadOrders)
 
   // Método executado quando a imagem da logo FALHA ao carregar
   onLogoError() {
@@ -174,6 +248,11 @@ export class PainelComponent implements OnInit, OnDestroy {
   // O evento contém informações sobre qual card foi movido e para onde
   // CORREÇÃO CRÍTICA NGTSC(2345): Tipagem correta do evento CdkDragDrop
   drop(event: CdkDragDrop<Order[]>) { 
+    // Bloqueia arrastar pedidos que já estão na coluna ENTREGUE (histórico)
+    if (event.previousContainer.id === 'deliveredList') {
+      return;
+    }
+
     // Se o card foi soltado na MESMA coluna, apenas reordena a posição
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
@@ -198,13 +277,22 @@ export class PainelComponent implements OnInit, OnDestroy {
       default: return;
     }
 
-    const movedOrder = event.container.data[event.currentIndex];
-    movedOrder.status = newStatus;
 
-    // Comente a linha abaixo se o Firebase não estiver configurado:
-    // this.updateOrderStatus(movedOrder.id, newStatus); 
+    const movedOrder = event.container.data[event.currentIndex];
+    movedOrder.status = newStatus;
+
+    // Persistência local do início/final do preparo
+    const backendId = (movedOrder.orderId && movedOrder.orderId > 0) ? movedOrder.orderId : movedOrder.id;
+    if (newStatus === 'EM PREPARO') {
+      this.setPrepStart(backendId);
+    } else if (newStatus === 'PRONTO' || newStatus === 'ENTREGUE') {
+      this.finalizePrep(backendId);
+    }
+
+    // Persiste alteração de status no backend
+    this.updateOrderStatus(backendId, newStatus);
+
     // Ativa o flag de "justUpdated" para mostrar uma animação visual
-    // por 700ms para destacar que o pedido foi movido
     movedOrder.justUpdated = true;
     setTimeout(() => movedOrder.justUpdated = false, 700);
   }
@@ -249,6 +337,11 @@ export class PainelComponent implements OnInit, OnDestroy {
       // Salva as mudanças nas listas (reatividade do Signal)
       this.toPrepare.set([...currentToPrepare]);
       this.inProgress.set([...currentInProgress, order]);
+      // Persistir no backend
+      const backendId = (order.orderId && order.orderId > 0) ? order.orderId : order.id;
+      // marca início do preparo localmente e persiste status
+      this.setPrepStart(backendId);
+      this.updateOrderStatus(backendId, 'EM PREPARO');
       return;  // Sai do método (pedido já foi movido)
     }
 
@@ -265,6 +358,10 @@ export class PainelComponent implements OnInit, OnDestroy {
       // Salva as mudanças nas listas
       this.inProgress.set([...currentInProgress]);
       this.ready.set([...currentReady, order]);
+      const backendId = (order.orderId && order.orderId > 0) ? order.orderId : order.id;
+      // finaliza preparo localmente e persiste status
+      this.finalizePrep(backendId);
+      this.updateOrderStatus(backendId, 'PRONTO');
       return;  // Sai do método
     }
 
@@ -281,7 +378,92 @@ export class PainelComponent implements OnInit, OnDestroy {
       // Salva as mudanças nas listas
       this.ready.set([...currentReady]);
       this.delivered.set([...currentDelivered, order]);
+      const backendId = (order.orderId && order.orderId > 0) ? order.orderId : order.id;
+      // finaliza preparo localmente e persiste status
+      this.finalizePrep(backendId);
+      this.updateOrderStatus(backendId, 'ENTREGUE');
       return;  // Sai do método
     }
+  }
+
+  // Converte label da UI para status esperado pelo backend
+  private labelToBackendStatus(label: Order['status']): string {
+    switch (label) {
+      case 'A PREPARAR': return 'RECEIVED';
+      case 'EM PREPARO': return 'IN_PREPARATION';
+      case 'PRONTO': return 'READY';
+      case 'ENTREGUE': return 'DELIVERED';
+      default: return label as string;
+    }
+  }
+
+  // Atualiza status do pedido no backend via OrderService e recarrega em caso de erro
+  updateOrderStatus(id: number | string, newLabelStatus: Order['status']): void {
+    const backendStatus = this.labelToBackendStatus(newLabelStatus);
+    this.orderService.updateStatus(id, backendStatus).subscribe({
+      next: () => {
+        // Sucesso — nada extra a fazer (UI já atualizada localmente)
+      },
+      error: (err) => {
+        console.error('Falha ao atualizar status do pedido:', err);
+        // Recarrega listas do backend para manter consistência
+        this.loadOrders();
+      }
+    });
+  }
+
+  // Retorna mensagem 'Finalizado em X minutos' para pedidos entregues
+  getDeliveredMessage(order: Order): string {
+    if (order.deliveredAt) {
+      const start = order.receivedAt || order.timestamp;
+      const end = order.deliveredAt;
+      const mins = Math.round((end.getTime() - start.getTime()) / 60000);
+      if (!isNaN(mins) && mins >= 0) {
+        return `Finalizado em ${mins} minuto${mins !== 1 ? 's' : ''}`;
+      }
+    }
+    // fallback: se não temos deliveredAt, mostra tempo desde criação
+    return this.getTimeElapsed(order.timestamp);
+  }
+
+  // --- Preparação: persistência local do início/final do preparo (localStorage)
+  private prepStartKey(orderId: number | string) { return `prepStart_${orderId}`; }
+  private prepDurationKey(orderId: number | string) { return `prepDuration_${orderId}`; }
+
+  // Registra o início do preparo para este pedido (se ainda não registrado)
+  private setPrepStart(orderId: number | string) {
+    try {
+      const k = this.prepStartKey(orderId);
+      if (!localStorage.getItem(k)) {
+        localStorage.setItem(k, new Date().toISOString());
+      }
+    } catch (e) { /* localStorage pode falhar em ambientes restritos */ }
+  }
+
+  // Finaliza o preparo: calcula duração em minutos e armazena em localStorage
+  private finalizePrep(orderId: number | string) {
+    try {
+      const start = localStorage.getItem(this.prepStartKey(orderId));
+      if (!start) return;
+      const startMs = new Date(start).getTime();
+      const mins = Math.round((Date.now() - startMs) / 60000);
+      localStorage.setItem(this.prepDurationKey(orderId), String(mins));
+    } catch (e) { /* ignore */ }
+  }
+
+  // Retorna minutos de preparo: se existir duração final armazenada, retorna ela;
+  // senão, se existir start, calcula minutos até agora; caso contrário retorna null.
+  getPrepMinutes(order: Order): number | null {
+    try {
+      const id = order.orderId ?? order.id;
+      const dur = localStorage.getItem(this.prepDurationKey(id));
+      if (dur !== null) return Number(dur);
+      const start = localStorage.getItem(this.prepStartKey(id));
+      if (start) {
+        const mins = Math.round((Date.now() - new Date(start).getTime()) / 60000);
+        return mins;
+      }
+    } catch (e) { /* ignore */ }
+    return null;
   }
 }

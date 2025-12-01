@@ -57,8 +57,13 @@ export class EditItemModalComponent implements OnInit {
         return;
     }
     
+    // Prepara objeto de saída; anexa File se foi selecionado para permitir upload via FormData
+    const out: any = { ...this.editForm };
+    if ((this.editForm as any).file) {
+      out.file = (this.editForm as any).file;
+    }
     // Emite o item atualizado para o componente pai
-    this.itemUpdated.emit(this.editForm as MenuItem);
+    this.itemUpdated.emit(out as MenuItem);
   }
 
   // Quando o usuário seleciona um arquivo local, leio como Base64 e atualizo editForm.foto
@@ -72,6 +77,8 @@ export class EditItemModalComponent implements OnInit {
         this.editForm.UrlImage = reader.result as string;
       };
       reader.readAsDataURL(file);
+      // Guarda referência do File para envio posterior (permitir substituição da imagem existente)
+      (this.editForm as any).file = file;
     }
   }
 }

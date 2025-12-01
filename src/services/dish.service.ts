@@ -178,22 +178,21 @@ export class DishService {
 
   // 4. CREATE: Criar um novo prato (POST)
   create(menuItem: MenuItem): Observable<MenuItem> {
-    // Se a imagem for um dataURL, converte para FormData e envia multipart
     const urlImageValue = (menuItem as any).UrlImage || '';
     const priceNum = this.normalizePrice((menuItem as any).preco);
 
-    if (typeof urlImageValue === 'string' && urlImageValue.startsWith('data:')) {
-      const blob = this.dataURLtoBlob(urlImageValue);
-      const filename = `${(menuItem.nome || 'upload').replace(/\s+/g, '_')}.png`;
+    // Se o componente forneceu um File diretamente (mais confiável), use-o
+    const fileObj = (menuItem as any).file;
+    if (fileObj && fileObj instanceof File) {
+      const filename = (fileObj as any).name || `${(menuItem.nome || 'upload').replace(/\s+/g, '_')}.png`;
       const form = new FormData();
-      form.append('file', blob, filename);
-      // Aliases para compatibilidade com diferentes backends
-      form.append('image', blob, filename);
-      form.append('imagem', blob, filename);
-      form.append('fileImage', blob, filename);
-      form.append('picture', blob, filename);
+      form.append('file', fileObj, filename);
+      // aliases para compatibilidade com backends variados
+      form.append('image', fileObj, filename);
+      form.append('imagem', fileObj, filename);
+      form.append('fileImage', fileObj, filename);
+      form.append('picture', fileObj, filename);
       form.append('urlImage', filename);
-      // Envia campos textuais esperados pelo backend (inclui nome/nomept)
       form.append('name', (menuItem as any).nome || (menuItem as any).name || '');
       form.append('nome', (menuItem as any).nome || (menuItem as any).name || '');
       form.append('price', String(priceNum));
@@ -201,13 +200,35 @@ export class DishService {
       form.append('description', menuItem.descricao || '');
       if (menuItem.tag) form.append('tag', menuItem.tag);
 
-      // Use HttpClient with FormData so the browser sets the Content-Type/boundary correctly.
       return this.http.post<any>(API_URL, form).pipe(
         map(json => this.mapDishToMenuItem(json))
       );
     }
 
-    // Caso normal: enviar JSON
+    // Se receber um dataURL (base64), converte para Blob e envia como multipart
+    if (typeof urlImageValue === 'string' && urlImageValue.startsWith('data:')) {
+      const blob = this.dataURLtoBlob(urlImageValue);
+      const filename = `${(menuItem.nome || 'upload').replace(/\s+/g, '_')}.png`;
+      const form = new FormData();
+      form.append('file', blob, filename);
+      form.append('image', blob, filename);
+      form.append('imagem', blob, filename);
+      form.append('fileImage', blob, filename);
+      form.append('picture', blob, filename);
+      form.append('urlImage', filename);
+      form.append('name', (menuItem as any).nome || (menuItem as any).name || '');
+      form.append('nome', (menuItem as any).nome || (menuItem as any).name || '');
+      form.append('price', String(priceNum));
+      form.append('category', menuItem.categoria || '');
+      form.append('description', menuItem.descricao || '');
+      if (menuItem.tag) form.append('tag', menuItem.tag);
+
+      return this.http.post<any>(API_URL, form).pipe(
+        map(json => this.mapDishToMenuItem(json))
+      );
+    }
+
+    // Caso padrão: JSON com metadados (sem enviar base64 inline)
     const dishToSend: Dish = this.mapMenuItemToDish(menuItem);
     return this.http.post<Dish>(API_URL, dishToSend).pipe(
       map(this.mapDishToMenuItem)
@@ -219,35 +240,27 @@ export class DishService {
   update(id: number, menuItem: MenuItem): Observable<MenuItem> { 
     const urlImageValue = (menuItem as any).UrlImage || '';
     const priceNum = this.normalizePrice((menuItem as any).preco);
-
-    if (typeof urlImageValue === 'string' && urlImageValue.startsWith('data:')) {
-      const blob = this.dataURLtoBlob(urlImageValue);
-      const filename = `${(menuItem.nome || 'upload').replace(/\s+/g, '_')}.png`;
-      const form = new FormData();
-      form.append('file', blob, filename);
-      // Aliases para compatibilidade com diferentes backends
-      form.append('image', blob, filename);
-      form.append('imagem', blob, filename);
-      form.append('fileImage', blob, filename);
-      form.append('picture', blob, filename);
-      form.append('urlImage', filename);
-      // Envia campos textuais esperados pelo backend (inclui nome/nomept)
-      form.append('name', (menuItem as any).nome || (menuItem as any).name || '');
-      form.append('nome', (menuItem as any).nome || (menuItem as any).name || '');
-      form.append('price', String(priceNum));
-      form.append('category', menuItem.categoria || '');
-      form.append('description', menuItem.descricao || '');
-      if (menuItem.tag) form.append('tag', menuItem.tag);
-
-      // Use HttpClient put with FormData so browser sets Content-Type/boundary correctly
-      return this.http.put<any>(`${API_URL}/${id}`, form).pipe(
-        map(json => this.mapDishToMenuItem(json))
-      );
-    }
-
+    // Sempre enviar JSON via PUT para atualizar metadados.
+    // Se for necessário enviar/atualizar a imagem, use o endpoint dedicado PATCH /{id}/image.
     const dishToSend: Dish = this.mapMenuItemToDish(menuItem);
     return this.http.put<Dish>(`${API_URL}/${id}`, dishToSend).pipe(
       map(this.mapDishToMenuItem)
+    );
+  }
+
+  // Upload separado de imagem para um prato existente.
+  // Backend deve expor um endpoint como POST /dishes/{id}/image que aceite multipart/form-data.
+  uploadImage(id: number, file: File | Blob, filename?: string) {
+    const name = filename || ((file as any).name || `upload_${id}.png`);
+    const form = new FormData();
+    // O backend espera o campo 'file' no @RequestParam
+    form.append('file', file as any, name);
+    // aliases opcionais (não necessários se backend usa 'file')
+    form.append('image', file as any, name);
+    form.append('imagem', file as any, name);
+    // Use PATCH para o endpoint de imagem conforme o backend atualizado
+    return this.http.patch<any>(`${API_URL}/${id}/image`, form).pipe(
+      map(json => this.mapDishToMenuItem(json))
     );
   }
 

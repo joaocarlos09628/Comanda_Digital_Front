@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ItemMenu } from '../menu.component';
-import { FavoritesService } from '../../../services/favorites.service';
+import { FavoritesService } from '../../../../services/favorites.service';
 
 @Component({
   selector: 'app-menu-item-card',

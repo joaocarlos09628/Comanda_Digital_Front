@@ -198,16 +198,33 @@ export class OverviewComponent implements OnInit {
   onItemUpdated(updatedItem: MenuItem): void { // <-- Função que o HTML precisa
     if (this.selectedItem && this.selectedItem.id) {
         // [MODIFICADO] Chamada ao Back-end (PUT)
-        this.dishService.update(this.selectedItem.id, updatedItem).subscribe({
-            next: (updatedDish) => {
-                const index = this.menuItems.findIndex(i => i.id === updatedDish.id);
-                if (index !== -1) {
-                    this.menuItems[index] = updatedDish;
-                }
-                this.closeModal();
-            },
-            error: (e) => console.error('Erro ao atualizar prato:', e)
-        });
+                this.dishService.update(this.selectedItem.id, updatedItem).subscribe({
+                        next: (updatedDish) => {
+                                const index = this.menuItems.findIndex(i => i.id === updatedDish.id);
+                                if (index !== -1) {
+                                        this.menuItems[index] = updatedDish;
+                                }
+                                // Se o objeto enviado pelo modal continha um File, envie-o separadamente
+                                const fileObj = (updatedItem as any).file;
+                                if (fileObj && fileObj instanceof File) {
+                                    this.dishService.uploadImage(updatedDish.id, fileObj).subscribe({
+                                        next: (withImage) => {
+                                            const idx2 = this.menuItems.findIndex(i => i.id === withImage.id);
+                                            if (idx2 !== -1) this.menuItems[idx2] = withImage;
+                                            this.closeModal();
+                                        },
+                                        error: (e) => {
+                                            console.error('Erro ao enviar imagem:', e);
+                                            // Fecha o modal mesmo se falhar o upload da imagem
+                                            this.closeModal();
+                                        }
+                                    });
+                                } else {
+                                    this.closeModal();
+                                }
+                        },
+                        error: (e) => console.error('Erro ao atualizar prato:', e)
+                });
     }
   }
 

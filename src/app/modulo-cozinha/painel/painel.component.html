@@ -72,6 +72,7 @@
               <span class="item-qty">{{ item.qty }}x</span> {{ item.name }}
             </li>
           </ul>
+          <div *ngIf="getPrepMinutes(order) as prepM" class="prep-time">Tempo de preparo: {{ prepM }} minuto{{ prepM !== 1 ? 's' : '' }}</div>
           <!-- Botão para Avançar Status -->
           <button class="action-button" (click)="moveOrderToNextStatus(order.orderId)">Iniciar Preparo</button>
         </div>
@@ -111,6 +112,7 @@
               <span class="item-qty">{{ item.qty }}x</span> {{ item.name }}
             </li>
           </ul>
+          <div *ngIf="getPrepMinutes(order) as prepM" class="prep-time">Tempo de preparo: {{ prepM }} minuto{{ prepM !== 1 ? 's' : '' }}</div>
           <!-- Botão para Avançar Status -->
           <button class="action-button" (click)="moveOrderToNextStatus(order.orderId)">Finalizar Pedido</button>
         </div>
@@ -151,7 +153,7 @@
             </li>
           </ul>
           <!-- Botão para Avançar Status -->
-          <button class="action-button" (click)="moveOrderToNextStatus(order.orderId)">Entregar Pedido</button>
+          <button class="action-button" (click)="moveOrderToNextStatus(order.orderId)">Arquivar pedido</button>
         </div>
       </div>
     </div>
@@ -174,14 +176,14 @@
         
         <div *ngIf="delivered().length === 0" class="empty-state">Sem pedidos entregues.</div>
         
-        <!-- Cards de Pedidos (Arrastáveis) -->
-  <div *ngFor="let order of filterOrders(delivered())" cdkDrag cdkDragBoundary=".kanban-columns-grid" class="order-card" [ngClass]="getStatusColor(order.status)" [class.updated]="order.justUpdated" [attr.data-status]="order.status">
+          <!-- Cards de Pedidos (não arrastáveis - histórico) -->
+        <div *ngFor="let order of filterOrders(delivered())" class="order-card" [ngClass]="getStatusColor(order.status)" [class.updated]="order.justUpdated" [attr.data-status]="order.status">
           <div class="card-header">
             <div>
               <span class="order-id">#{{ order.orderId }}</span>
               <span class="table-name">{{ order.table }}</span>
             </div>
-            <span class="time-elapsed">{{ getTimeElapsed(order.timestamp) }}</span>
+            
           </div>
           <!-- Lista de Itens do Pedido -->
           <ul class="order-items-list">
@@ -189,6 +191,7 @@
               <span class="item-qty">{{ item.qty }}x</span> {{ item.name }}
             </li>
           </ul>
+          <div *ngIf="getPrepMinutes(order) as prepM" class="prep-time">Tempo de preparo: {{ prepM }} minuto{{ prepM !== 1 ? 's' : '' }}</div>
         </div>
       </div>
     </div>

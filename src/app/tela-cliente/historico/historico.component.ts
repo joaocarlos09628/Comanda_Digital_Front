@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { CarrinhoService } from '../carrinho.service';
+import { CarrinhoService } from '../../../services/carrinho.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { FavoritesService } from '../../services/favorites.service';
+import { FavoritesService } from '../../../services/favorites.service';
 
 @Component({
   selector: 'app-historico',

@@ -49,6 +49,8 @@ export class AddItemModalComponent {
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
     if (file) {
+      // Guarda o arquivo selecionado para envio direto (evita depender somente do dataURL)
+      (this.newItem as any).file = file;
       // Lê o arquivo como Base64 (DataURL) para pré-visualização e envio
       const reader = new FileReader();
       reader.onload = () => {
@@ -156,9 +158,13 @@ export class AddItemModalComponent {
       descricao: this.newItem.descricao,
     };
 
-    // emitindo item para o componente pai
+    // Anexa o arquivo selecionado, se houver, para que o serviço envie FormData
+    const file = (this.newItem as any).file;
+    if (file) {
+      (emitItem as any).file = file;
+    }
 
-    // Envia para o componente pai
+    // Emitindo item para o componente pai
     this.itemAdded.emit(emitItem as MenuItem);
   }
 
