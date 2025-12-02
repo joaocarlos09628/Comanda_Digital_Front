@@ -5,28 +5,52 @@
 	</div>
 
 	<div *ngIf="tab==='favoritos'">
-		<div *ngIf="favoritos.length === 0">Nenhum favorito ainda.</div>
-		<div class="fav-list">
-			<div *ngFor="let f of favoritos" class="fav-row" (click)="abrirDetalhe(f)">
-				<img [src]="f.img || f.UrlImage || f.url || f.image || 'https://placehold.co/80x60'" alt="{{f.nome}}" />
-				<div class="meta">
-					<div class="title">{{ f.nome }}</div>
-					<div class="price">{{ displayPrice(f) }}</div>
+		<section class="favorites-list">
+			<div *ngIf="favoritos.length === 0" class="center">Nenhum prato favorito</div>
+			<div *ngFor="let item of favoritos" class="fav-card" (click)="abrirDetalhe(item)">
+				<img [src]="item.UrlImage || item.img || 'assets/placeholder.png'" alt="{{item.nome}}" />
+				<div class="fav-meta">
+					<div class="fav-name">{{ item.nome }}</div>
+					<div class="fav-price">{{ item.preco || item.price || 'R$ 0,00' }}</div>
 				</div>
-				<button class="fav-toggle" title="Favorito" (click)="toggleFav(f); $event.stopPropagation()">
-					<span class="heart">♥</span>
-				</button>
+				<button class="fav-heart" (click)="toggleFav(item); $event.stopPropagation()">♥</button>
 			</div>
-		</div>
+		</section>
 	</div>
 
 	<div *ngIf="tab==='historico'">
-		<div>Sem pedidos no Histórico</div>
+		<div *ngIf="loading" class="center">Carregando pedidos...</div>
+		<div *ngIf="errorMsg" class="error">{{ errorMsg }}</div>
+		<div *ngIf="!loading && orders.length === 0 && !errorMsg" class="center">Nenhum pedido encontrado.</div>
+
+		<section class="orders-list">
+			<article *ngFor="let order of orders" class="order-card" [class.cancelled]="isCancelled(order.status)">
+				<div class="card-left">
+					<img [src]="firstImage(order)" alt="Pedido {{order.id}}"/>
+				</div>
+				<div class="card-right">
+					<div class="title-row">
+						<div class="title" [class.canceladoText]="isCancelled(order.status)">{{ titleFor(order) }}</div>
+						<div class="order-number">Pedido #{{ order.id }}</div>
+					</div>
+
+					<div class="total">{{ displayTotal(order) }}</div>
+
+					<div class="actions">
+						<button *ngIf="isInProgress(order.status)" class="btn btn-track" (click)="acompanhar(order)">Acompanhar pedido</button>
+						<button *ngIf="isDelivered(order.status)" class="btn btn-reorder" (click)="pedirNovamente(order)">Peça novamente</button>
+					</div>
+
+					<div *ngIf="!order.items || order.items.length === 0" class="muted">Pedido sem itens</div>
+				</div>
+			</article>
+		</section>
 	</div>
 
-	<!-- bottom nav -->
+	<!-- bottom nav (mantido) -->
 	<nav class="bottom-nav">
 		<a routerLink="/cliente" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item" title="Home">
+			<!-- svg omitted for brevity -->
 			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
 				<path d="M3 11.5L12 4l9 7.5" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
 				<path d="M5 12v7a1 1 0 001 1h3v-5h6v5h3a1 1 0 001-1v-7" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -40,7 +64,6 @@
 				<circle cx="10" cy="20" r="1" fill="#111" />
 				<circle cx="18" cy="20" r="1" fill="#111" />
 			</svg>
-			<span class="cart-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
 		</a>
 
 		<a routerLink="/cliente/historico" routerLinkActive="active" class="nav-item" title="Favoritos">

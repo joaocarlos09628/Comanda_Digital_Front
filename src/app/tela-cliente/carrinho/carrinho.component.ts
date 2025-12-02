@@ -292,11 +292,11 @@ export class CarrinhoComponent implements OnInit {
         }
 
         forkJoin(itemCalls).subscribe({
-          next: (added) => {
+          next: (added: any) => {
             // 3) Finaliza o pedido
             this.finalizeOrderFlow(orderId, res);
           },
-          error: (e) => {
+          error: (e: any) => {
             console.error('Erro ao adicionar items ao pedido:', e);
             this.savingOrder = false;
             alert('Falha ao adicionar itens ao pedido. Tente novamente.');
@@ -321,7 +321,7 @@ export class CarrinhoComponent implements OnInit {
 
   private finalizeOrderFlow(orderId: any, createResponse: any) {
     this.orderService.finalize(orderId).subscribe({
-      next: (finalOrder) => {
+      next: (finalOrder: any) => {
         this.savingOrder = false;
         this.carrinhoService.clear();
         this.syncFromService();
@@ -330,7 +330,7 @@ export class CarrinhoComponent implements OnInit {
         // e rastreio possam mostrar o total com frete mesmo que o backend não persista.
         this.router.navigate(['/cliente/pedido/aprovado'], { state: { order: finalOrder, shipping: this.shipping } });
       },
-      error: (e) => {
+      error: (e: any) => {
         console.error('Erro ao finalizar pedido:', e);
         this.savingOrder = false;
         alert('Falha ao finalizar o pedido. Tente novamente.');

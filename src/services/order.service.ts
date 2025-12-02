@@ -1,44 +1,62 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { OrderPayload } from '../interfaces/order.interface';
+
+export interface OrderItemDTO {
+  dishName: string;
+  dishImage?: string;
+  quantity: number;
+  price: number;
+  subTotal?: number;
+  dishId?: number | string;
+}
+
+export interface OrderDTO {
+  id: number | string;
+  status: string;
+  total: number;
+  items: OrderItemDTO[];
+  createdAt?: string | number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
-  // Ajuste a baseUrl se necessário (usar host do backend em dev)
   private baseUrl = 'http://localhost:8080/orders';
 
   constructor(private http: HttpClient) {}
 
-  create(order: OrderPayload): Observable<any> {
-    return this.http.post(this.baseUrl, order);
-  }
-
   // Buscar todos os pedidos
-  findAll(): Observable<any> {
-    return this.http.get(this.baseUrl);
+  findAll(): Observable<OrderDTO[]> {
+    return this.http.get<OrderDTO[]>(this.baseUrl);
   }
 
   // Buscar um pedido por id
-  findById(id: number | string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/${id}`);
+  findById(id: number | string): Observable<OrderDTO> {
+    return this.http.get<OrderDTO>(`${this.baseUrl}/${id}`);
   }
 
-  // Buscar por status (único)
-  findByStatus(status: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/status/${status}`);
+  // Buscar por um status (retorna array de pedidos que correspondem)
+  findByStatus(status: string): Observable<OrderDTO[]> {
+    if (!status) return this.findAll();
+    const url = `${this.baseUrl}?status=${encodeURIComponent(status)}`;
+    return this.http.get<OrderDTO[]>(url);
   }
 
   // Buscar por múltiplos status via query string: /orders?status=READY&status=ON_THE_WAY
-  findByStatuses(statuses: string[]): Observable<any> {
+  findByStatuses(statuses: string[]): Observable<OrderDTO[]> {
     if (!statuses || statuses.length === 0) return this.findAll();
     const params = statuses.map(s => `status=${encodeURIComponent(s)}`).join('&');
-    return this.http.get(`${this.baseUrl}?${params}`);
+    const url = `${this.baseUrl}?${params}`;
+    return this.http.get<OrderDTO[]>(url);
+  }
+
+  // Criar pedido (se necessário)
+  create(payload: any): Observable<any> {
+    return this.http.post(this.baseUrl, payload);
   }
 
   // Adiciona/atualiza um item no rascunho (carrinho)
   addItem(orderId: number | string, item: { quantity: number; price: number; dishId: number | string } ): Observable<any> {
-    // O controller espera OrderItemInputDTO no body
     const body = {
       quantity: item.quantity,
       price: item.price,
@@ -47,26 +65,13 @@ export class OrderService {
     return this.http.post(`${this.baseUrl}/${orderId}/items`, body);
   }
 
-  // Remove ou diminui um item (PATCH)
-  removeItem(orderId: number | string, item: { quantity: number; dishId: number | string } ): Observable<any> {
-    const body = {
-      quantity: item.quantity,
-      dishId: item.dishId
-    };
-    return this.http.patch(`${this.baseUrl}/${orderId}/items/remove`, body);
-  }
-
   // Finaliza o pedido (POST /{orderId}/finalize)
   finalize(orderId: number | string): Observable<any> {
     return this.http.post(`${this.baseUrl}/${orderId}/finalize`, null);
   }
 
-  // Atualiza status via PATCH /{id}/status?status=...
+  // Atualizar status via PATCH /{id}/status?status=...
   updateStatus(id: number | string, status: string): Observable<any> {
     return this.http.patch(`${this.baseUrl}/${id}/status`, null, { params: { status } });
   }
-
-  // Avançar/Voltar etapa
-  nextStep(id: number | string): Observable<any> { return this.http.post(`${this.baseUrl}/${id}/next`, null); }
-  previousStep(id: number | string): Observable<any> { return this.http.post(`${this.baseUrl}/${id}/previous`, null); }
 }
