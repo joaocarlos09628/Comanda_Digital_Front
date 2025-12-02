@@ -51,7 +51,13 @@ export class RastreioComponent implements OnInit, OnDestroy {
         etaMinutes: navState.etaMinutes ?? null,
         address: navState.address_snapshot || navState.address || navState.address_snapshot_text || navState.client_address || '',
         total: navState.total ?? navState.price ?? navState.amount ?? null,
-        items: (navState.items || navState.orderItems || []).map((it: any) => ({ name: it.name || it.dishName || 'Item', qty: it.quantity ?? it.qty ?? 1, price: it.price ?? it.unitPrice ?? it.valor ?? 0 })),
+        items: (navState.items || navState.orderItems || []).map((it: any) => ({
+          name: it.name || it.dishName || 'Item',
+          qty: it.quantity ?? it.qty ?? 1,
+          price: it.price ?? it.unitPrice ?? it.valor ?? 0,
+          dishId: it.dishId ?? it.id ?? null,
+          dishImage: it.dishImage ?? it.image ?? null
+        })),
         riderPhone: navState.riderPhone ?? null,
         updatedAt: navState.moment ?? navState.updatedAt ?? null
       } as RastreioPayload;
@@ -157,7 +163,7 @@ export class RastreioComponent implements OnInit, OnDestroy {
     if (!this.rastreio?.items) return [];
     return (this.rastreio.items || []).map((it: any) => ({
       dishId: it.dishId ?? it.id ?? null,
-      image: it.image || (it.dishId ? `assets/img/pratos/${it.dishId}.png` : null),
+      image: this.resolveImagePath(it.dishImage ?? it.image) || (it.dishId ? `assets/img/pratos/${it.dishId}.png` : null),
       name: it.name || it.dishName || it.title || 'Item',
       quantity: Number(it.quantity ?? it.qty ?? it.qtd ?? 1) || 1,
       price: Number(it.price ?? it.preco ?? it.unitPrice ?? it.valor ?? 0) || 0
@@ -215,14 +221,16 @@ export class RastreioComponent implements OnInit, OnDestroy {
     const calls = items.map((it: any) => {
       const dishId = it.dishId ?? it.dish_id ?? it.id ?? null;
       if (!dishId) {
-        return of({ dishId: null, name: it.name || 'Item', image: null, quantity: Number(it.quantity ?? it.qty ?? 1) || 1, price: Number(it.price ?? it.preco ?? 0) || 0 });
+        // prefer dishImage if present
+        const imgVal = this.resolveImagePath(it.dishImage ?? it.image) || null;
+        return of({ dishId: null, name: it.name || 'Item', image: imgVal, quantity: Number(it.quantity ?? it.qty ?? 1) || 1, price: Number(it.price ?? it.preco ?? 0) || 0 });
       }
       return this.dishService.findById(Number(dishId)).pipe(
         map((menuItem: any) => ({
           dishId,
           name: menuItem?.nome || menuItem?.name || it.name || 'Item',
-          // prefer asset image by dishId as requested
-          image: `assets/img/pratos/${dishId}.png`,
+          // prefer backend image when available, fall back to asset by dishId
+          image: (menuItem?.image || menuItem?.UrlImage || menuItem?.urlImage || menuItem?.img) || `assets/img/pratos/${dishId}.png`,
           quantity: Number(it.quantity ?? it.qty ?? 1) || 1,
           price: Number(it.price ?? it.preco ?? 0) || 0
         })),
@@ -233,6 +241,20 @@ export class RastreioComponent implements OnInit, OnDestroy {
     forkJoin(calls).subscribe(results => {
       this.viewItems = results as any;
     }, () => { this.viewItems = []; });
+  }
+
+  private resolveImagePath(path: string | null | undefined): string | null {
+    if (!path) return null;
+    const p = String(path).trim();
+    if (p === '') return null;
+    if (/^https?:\/\//i.test(p)) return p;
+    if (p.startsWith('/')) {
+      const proto = location.protocol;
+      const host = location.hostname;
+      const port = ':8080';
+      return `${proto}//${host}${port}${p}`;
+    }
+    return p;
   }
 
   // Esconde imagem quebrada no rastreio (mesma estratégia do carrinho)

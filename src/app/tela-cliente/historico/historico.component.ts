@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { OrderService, OrderDTO, OrderItemDTO } from '../../../services/order.service';
+import { DishService } from '../../../services/dish.service';
 import { CarrinhoService } from '../../../services/carrinho.service';
 import { FavoritesService } from '../../../services/favorites.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -20,7 +21,7 @@ export class HistoricoComponent implements OnInit {
   loading = false;
   errorMsg = '';
 
-  constructor(private orderService: OrderService, private carrinho: CarrinhoService, private fav: FavoritesService, private router: Router) {}
+  constructor(private orderService: OrderService, private carrinho: CarrinhoService, private fav: FavoritesService, private router: Router, private dishService: DishService) {}
 
   ngOnInit(): void {
     this.loadOrders();
@@ -42,6 +43,8 @@ export class HistoricoComponent implements OnInit {
           // fallback: id numérico desc
           try { return Number(b.id) - Number(a.id); } catch { return 0; }
         });
+        // ensure we have images for orders (first item) by fetching dish when needed
+        this.ensureOrdersHaveImages(this.orders);
         this.loading = false;
       },
       error: (err: HttpErrorResponse) => {
@@ -52,11 +55,58 @@ export class HistoricoComponent implements OnInit {
     });
   }
 
+  private ensureOrdersHaveImages(orders: OrderDTO[]) {
+    if (!orders || orders.length === 0) return;
+    for (const order of orders) {
+      try {
+        const first = order.items && order.items.length ? (order.items[0] as any) : null;
+        if (!first) continue;
+        // if dishImage present and absolute, keep; if relative, prefix host
+        if (first.dishImage && typeof first.dishImage === 'string' && first.dishImage.trim() !== '') {
+          first.dishImage = this.resolveImagePath(first.dishImage);
+          continue;
+        }
+        if (first.image && typeof first.image === 'string' && first.image.trim() !== '') {
+          first.image = this.resolveImagePath(first.image);
+          continue;
+        }
+        const dishId = first.dishId ?? first.id ?? null;
+        if (dishId != null) {
+          // async fetch but don't block UI
+          this.dishService.findById(Number(dishId)).subscribe(mi => {
+            const resolved = (mi as any).image || (mi as any).UrlImage || (mi as any).urlImage || (mi as any).img || '';
+            if (resolved && typeof resolved === 'string') {
+              first.dishImage = resolved;
+            }
+          }, () => { /* ignore errors */ });
+        }
+      } catch (e) { /* noop */ }
+    }
+  }
+
+  private resolveImagePath(path: string | undefined | null): string {
+    if (!path) return 'assets/placeholder.png';
+    const p = String(path).trim();
+    if (p === '') return 'assets/placeholder.png';
+    if (/^https?:\/\//i.test(p)) return p;
+    // relative path from backend (starts with '/') -> prefix backend host:port
+    if (p.startsWith('/')) {
+      const proto = location.protocol;
+      const host = location.hostname;
+      // default backend port used in this project
+      const port = ':8080';
+      return `${proto}//${host}${port}${p}`;
+    }
+    return p;
+  }
+
   // UI helpers
   firstImage(order: OrderDTO): string {
     if (!order || !order.items || order.items.length === 0) return 'assets/placeholder.png';
-    const img = order.items[0].dishImage || (order.items[0] as any).image || '';
-    return img && img.trim() !== '' ? img : 'assets/placeholder.png';
+    const first: any = order.items[0];
+    const imgRaw = first.dishImage ?? first.image ?? '';
+    const resolved = this.resolveImagePath(imgRaw);
+    return resolved && resolved.trim() !== '' ? resolved : 'assets/placeholder.png';
   }
 
   titleFor(order: OrderDTO): string {
