@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { OrderTrackerComponent } from './order-tracker.component';
 import { RastreioService, RastreioPayload } from '../../../services/rastreio.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -10,7 +11,7 @@ import { catchError, map } from 'rxjs/operators';
 @Component({
   selector: 'app-rastreio',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, OrderTrackerComponent],
   templateUrl: './rastreio.component.html',
   styleUrls: ['./rastreio.component.css']
 })
@@ -118,10 +119,11 @@ export class RastreioComponent implements OnInit, OnDestroy {
 
   // Determine which visual step index is active (0..2)
   activeStepIndex(): number {
-    const s = (this.rastreio && this.rastreio.status) ? String(this.rastreio.status).toUpperCase() : '';
+    const raw = (this.rastreio && (this.rastreio.status ?? '')) ? String(this.rastreio.status) : '';
+    const s = raw.trim().toUpperCase();
     if (!s) return 0;
     // map possible backend statuses to our UI steps
-    const preparing = ['PENDING','RECEIVED','PREPARING','READY'];
+    const preparing = ['PENDING','RECEIVED','PREPARING','IN_PREPARATION','READY'];
     const onTheWay = ['ON_THE_WAY','OUT_FOR_DELIVERY','EN_ROUTE','DELIVERY'];
     const delivered = ['DELIVERED','FINISHED'];
     if (delivered.includes(s)) return 2;

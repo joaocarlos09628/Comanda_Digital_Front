@@ -1,0 +1,13 @@
+<div class="order-tracker">
+  <div class="tracker-row">
+    <ng-container *ngFor="let label of ['Preparação','Em rota','Finalizado']; let i = index">
+      <div class="step" [class.filled]="isFilled(i)">
+        <div class="circle">
+          <span *ngIf="isFilled(i)">✓</span>
+        </div>
+        <div class="label">{{ label }}</div>
+      </div>
+      <div *ngIf="i < 2" class="connector" [class.active]="i <= activeIndex()"></div>
+    </ng-container>
+  </div>
+</div>

@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { Order } from '../enums/order.model';
+import { OrderStatus } from '../enums/order-status.enum';
 
 @Component({
   selector: 'delivery-card',
@@ -15,6 +16,7 @@ import type { Order } from '../enums/order.model';
       <div class="address">{{order.address}}</div>
       <div class="card-actions">
         <button *ngIf="mode==='available'" class="btn accept" (click)="onAccept()">Aceitar</button>
+        <button *ngIf="mode==='in-route' && order.status === OrderStatus.ON_THE_WAY" class="btn finish" (click)="onFinish()">Finalizar entrega</button>
         <button class="btn details" (click)="onDetails()">Ver detalhes</button>
       </div>
     </article>
@@ -28,6 +30,7 @@ import type { Order } from '../enums/order.model';
      .card-actions{display:flex;gap:8px}
      .btn{padding:6px 10px;border-radius:6px;border:none;cursor:pointer}
      .accept{background:#10b981;color:#fff}
+     .finish{background:#2563eb;color:#fff}
      .details{background:#e5e7eb;color:#111}
     `
   ]
@@ -37,7 +40,11 @@ export class DeliveryCardComponent {
   @Input() mode: 'available' | 'in-route' | 'history' = 'available';
   @Output() accept = new EventEmitter<Order>();
   @Output() details = new EventEmitter<Order>();
+  @Output() finish = new EventEmitter<Order>();
+  // expose enum for template comparisons
+  public OrderStatus = OrderStatus;
 
   onAccept(){ this.accept.emit(this.order); }
   onDetails(){ this.details.emit(this.order); }
+  onFinish(){ this.finish.emit(this.order); }
 }

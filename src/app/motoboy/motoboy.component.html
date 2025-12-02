@@ -9,9 +9,9 @@
 
 	<div *ngIf="inRouteOrders.length === 0" class="mf-empty">Nenhum pedido em rota</div>
 
-	<div *ngFor="let o of inRouteOrders">
-	  <delivery-card [order]="o" [mode]="'in-route'" (details)="viewDetails($event)"></delivery-card>
-	</div>
+		<div *ngFor="let o of inRouteOrders">
+			<delivery-card [order]="o" [mode]="'in-route'" (details)="viewDetails($event)" (finish)="finishDelivery($event)"></delivery-card>
+		</div>
   </section>
 
   <!-- Pedidos disponíveis -->

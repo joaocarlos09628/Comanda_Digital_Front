@@ -181,7 +181,8 @@ export class MotoboyComponent implements OnInit {
       id,
       displayNumber: r.displayNumber ?? `Pedido Nº ${id}`,
       date: r.date ?? r.createdAt ?? '',
-      address: r.address ?? r.clientAddress ?? '',
+     address: r.address ?? r.clientAddress ?? r.addressSnapshot ?? '',
+
       restaurantAddress: r.restaurantAddress,
       clientAddress: r.clientAddress,
       items,

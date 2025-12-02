@@ -15,17 +15,7 @@
 				<div class="eta-box">Tempo estimado:<div class="eta-val">{{ fixedEtaText }}</div></div>
 			</div>
 
-			<div class="r-steps">
-				<div class="step" *ngFor="let step of steps; let i = index">
-					<div class="marker-wrap">
-						<div class="marker" [class.active]="i <= activeStepIndex()"> 
-							<span *ngIf="i <= activeStepIndex()">✓</span>
-						</div>
-						<div class="connector" *ngIf="i < steps.length - 1" [class.filled]="i < activeStepIndex()"></div>
-					</div>
-					<div class="step-text" [class.current]="i === activeStepIndex()">{{ step.label }}</div>
-				</div>
-			</div>
+			<app-order-tracker [status]="rastreio?.status"></app-order-tracker>
 
 			<div class="r-address">
 				<div class="addr-left">

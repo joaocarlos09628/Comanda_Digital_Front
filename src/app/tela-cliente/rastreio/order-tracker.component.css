@@ -1,0 +1,22 @@
+.order-tracker{width:100%}
+.tracker-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.step{display:flex;flex-direction:column;align-items:center;flex:0 0 auto}
+.circle{width:40px;height:40px;border-radius:50%;background:#f1f5f9;border:2px solid #e6e9ee;display:flex;align-items:center;justify-content:center;color:transparent;font-weight:700}
+.circle span{color:#fff}
+.label{margin-top:8px;font-size:0.9rem;color:#6b7280;text-align:center}
+.connector{height:6px;flex:1;background:#f1f5f9;margin:0 10px;border-radius:6px}
+.connector.active{background:#bbf7d0}
+.step.filled .circle{background:#16a34a;border-color:#16a34a;box-shadow:0 6px 18px rgba(22,163,74,0.12);color:#fff}
+.step.filled .label{color:#0f172a;font-weight:600}
+
+@media(min-width:720px){
+  .tracker-row{gap:16px}
+  .connector{height:6px}
+}
+
+@media(max-width:719px){
+  .tracker-row{flex-direction:column;align-items:flex-start}
+  .connector{width:6px;height:36px;margin:8px 0}
+  .step{flex-direction:row;align-items:center;gap:12px}
+  .label{margin-top:0}
+}
