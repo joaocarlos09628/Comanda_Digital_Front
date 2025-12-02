@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators'; 
+import { Observable, from } from 'rxjs';
+import { map } from 'rxjs/operators'; 
 import { Dish } from '../interfaces/dish.interface'; 
 import { MenuItem } from '../app/menu-gerente/overview/overview.component'; 
 
@@ -230,25 +230,38 @@ export class DishService {
   // [COMPLETO] 5. UPDATE: Atualizar um prato (PUT)
   // ESTE MÉTODO CORRIGE O ERRO "A propriedade 'update' não existe"
   update(id: number, menuItem: MenuItem): Observable<MenuItem> { 
-    const urlImageValue = (menuItem as any).UrlImage || '';
-    const fileObj = (menuItem as any).file;
-    // Sempre enviar JSON via PUT para atualizar metadados.
+    // Monta o Dish (metadados) a partir do MenuItem
     const dishToSend: Dish = this.mapMenuItemToDish(menuItem);
 
-    return this.http.put<Dish>(`${API_URL}/${id}`, dishToSend).pipe(
-      // Se houver imagem nova (File ou dataURL), enviar via PATCH separadamente e devolver o resultado final.
-      switchMap((dishResp: Dish) => {
-        if (fileObj && fileObj instanceof File) {
-          return this.uploadImage(dishResp.id, fileObj);
-        }
-        if (typeof urlImageValue === 'string' && urlImageValue.startsWith('data:')) {
-          const blob = this.dataURLtoBlob(urlImageValue);
-          const filename = `${(menuItem.nome || 'upload').replace(/\s+/g, '_')}.png`;
-          return this.uploadImage(dishResp.id, blob, filename);
-        }
-        // Caso sem nova imagem: retornar o objeto mapeado do PUT
-        return of(this.mapDishToMenuItem(dishResp));
-      })
+    // Sempre enviar multipart/form-data contendo:
+    // - campo 'dish' com o JSON dos metadados
+    // - campo 'file' com a imagem, se fornecida
+    const form = new FormData();
+    const jsonBlob = new Blob([JSON.stringify(dishToSend)], { type: 'application/json' });
+    form.append('dish', jsonBlob);
+
+    const fileObj = (menuItem as any).file;
+    const urlImageValue = (menuItem as any).UrlImage || '';
+
+    if (fileObj && fileObj instanceof File) {
+      form.append('file', fileObj, (fileObj as any).name || 'upload.png');
+      // aliases (compatibilidade) — alguns backends podem checar outros nomes
+      form.append('image', fileObj, (fileObj as any).name || 'upload.png');
+      form.append('imagem', fileObj, (fileObj as any).name || 'upload.png');
+    } else if (typeof urlImageValue === 'string' && urlImageValue.startsWith('data:')) {
+      // dataURL -> Blob
+      const blob = this.dataURLtoBlob(urlImageValue);
+      const filename = `${(menuItem.nome || 'upload').replace(/\s+/g, '_')}.png`;
+      form.append('file', blob, filename);
+      form.append('image', blob, filename);
+      form.append('imagem', blob, filename);
+    } else if (typeof urlImageValue === 'string' && urlImageValue.trim() !== '') {
+      // Se for uma URL externa, enviar como campo de texto para o backend
+      form.append('urlImage', urlImageValue.trim());
+    }
+
+    return this.http.put<any>(`${API_URL}/${id}`, form).pipe(
+      map(json => this.mapDishToMenuItem(json))
     );
   }
 
